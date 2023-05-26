@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="579" height="500">
+   <g viewBox="0 0 500 500">
+      <g>
+         <path fill="#0F9D58" d="M52.6,52.6h473.7v394.8H52.6V52.6z" />
+         <path fill="rgb(238, 240, 238)" d="M342.1,421.1h118.4v26.3H342.1V421.1z" />
+         <path fill="#F4B400" d="M539.5,0h-500C17.7,0,0,17.7,0,39.5v421.1C0,482.3,17.7,500,39.5,500h500c21.8,0,39.5-17.7,39.5-39.5V39.5   C578.9,17.7,561.3,0,539.5,0z M526.3,447.4H52.6V52.6h473.7V447.4z" />
+         <path opacity="0.2" fill="#FFFFFF" enable-background="new    " d="M539.5,0h-500C17.7,0,0,17.7,0,39.5v3.3C0,21,17.7,3.3,39.5,3.3   h500c21.8,0,39.5,17.7,39.5,39.5v-3.3C578.9,17.7,561.3,0,539.5,0z" />
+         <path opacity="0.2" fill="#BF360C" enable-background="new    " d="M539.5,496.7h-500C17.7,496.7,0,479,0,457.2v3.3   C0,482.3,17.7,500,39.5,500h500c21.8,0,39.5-17.7,39.5-39.5v-3.3C578.9,479,561.3,496.7,539.5,496.7z" />
+         <linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="154.8649" y1="295.747" x2="154.8649" y2="282.6343" gradientTransform="matrix(12.992 0 0 -4 -1584.6235 1631.0867)">
+            <stop offset="0" style="stop-color:#BF360C;stop-opacity:0.2" />
+            <stop offset="1" style="stop-color:#BF360C;stop-opacity:2.000000e-02" />
+         </linearGradient>
+         <path fill="url(#SVGID_1_)" d="M460.3,447.4H341.9l52.6,52.6h118.3L460.3,447.4z" />
+         <path opacity="0.2" fill="#263238" enable-background="new    " d="M52.6,49.3h473.7v3.3H52.6V49.3z" />
+         <path opacity="0.2" fill="#FFFFFF" enable-background="new    " d="M52.6,447.4h473.7v3.3H52.6V447.4z" />
+         <radialGradient id="SVGID_2_" cx="131.4012" cy="367.2001" r="18.1966" gradientTransform="matrix(38.0002 0 0 -38 -4973.3276 13965.3232)" gradientUnits="userSpaceOnUse">
+            <stop offset="0" style="stop-color:#FFFFFF;stop-opacity:0.1" />
+            <stop offset="1" style="stop-color:#FFFFFF;stop-opacity:0" />
+         </radialGradient>
+         <path fill="url(#SVGID_2_)" d="M539.5,0h-500C17.7,0,0,17.7,0,39.5v421.1C0,482.3,17.7,500,39.5,500h500   c21.8,0,39.5-17.7,39.5-39.5V39.5C578.9,17.7,561.3,0,539.5,0z" />
+      </g>
+      <ellipse style="fill: rgb(238, 240, 238); stroke: rgba(0, 0, 0, 0);" cx="289.45" cy="250" rx="175" ry="175" />
+      <g transform="matrix(1.25, 0, 0, 1.25, 200.925, 131.875)">
+         <ellipse style="fill: rgb(0, 182, 239); stroke: rgba(57, 153, 213, 0);" cx="33" cy="33" rx="7" ry="7" />
+         <ellipse style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" cx="66.5" cy="65.5" rx="7" ry="7" />
+         <ellipse style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" cx="46.5" cy="91.5" rx="7" ry="7" />
+         <ellipse style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" cx="126.5" cy="94.5" rx="7.5" ry="7.5" />
+         <ellipse style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" cx="33.5" cy="155.5" rx="7" ry="7" />
+         <rect x="33" y="26" width="44" height="14" style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" />
+         <rect x="33.5" y="148.5" width="43" height="14" style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" />
+         <rect x="46.5" y="84.5" width="30" height="14" style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" />
+         <rect x="20" y="0" width="57" height="14" style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" />
+         <rect x="19" y="174" width="61" height="15" style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" />
+         <rect x="0" y="19" width="15" height="151" style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" />
+         <rect x="66.5" y="58.5" width="10.5" height="14" style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" />
+         <path style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" d="M 0 170 q 4 17 19 19 L 19 174 q -3 -1 -4 -4" />
+         <path style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" d="M 0 19 q 4 -19 20 -19 L 20 14 q -4 1 -5 5" />
+         <path style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" d="M 77 26 C 106 26 106 72.5 77 72.5 L 77 58.5 C 87 58.5 87 40 77 40" />
+         <path style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" d="M 76.5 84.5 C 127 84.5 127 162.5 76.5 162.5 L 76.5 148.5 C 108 148.5 108 98.5 76.5 98.5" />
+         <path style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" d="M 77 0 C 141 0 141 97 77 97 L 77 84.5 C 121 84.5 121 14 77 14" />
+         <path style="fill: rgb(0, 182, 239); stroke: rgba(0, 0, 0, 0);" d="M 133.8 93 C 160 148.5 115 187.5 80 189 L 80 174 C 117.5 169 138 134 119 94.5" />
+      </g>
+   </g>
+</svg>
