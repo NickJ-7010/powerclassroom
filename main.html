@@ -1243,7 +1243,7 @@
                                     icon.classList.add('icon');
                                     textElement.classList.add('text');
                                     buttonsContainer.classList.add('buttons');
-
+                                    
                                     switch (obj.type) {
                                         case 'M':
                                         case 'SM':
@@ -1293,7 +1293,7 @@
                                             document.getElementById('open_embed_button').onclick = function () {
                                                 window.open(obj.url.startsWith('https://') ? obj.url : 'https://brightspace.aacps.org' + obj.url, '_blank');
                                             }
-                                            if (obj.description) document.getElementById('embed_content').innerHTML = obj.description;
+                                            if (obj.description) document.getElementById('embed_content').innerHTML = obj.description.replace(/(src|href)="\//gm, '$1="https://brightspace.aacps.org/');
                                             else if (obj.url) document.getElementById('embed_content').innerHTML = `<iframe style="border: none; width: 100%; height: calc(100% - 5px);" src="${obj.url.startsWith('https://') ? obj.url : 'https://brightspace.aacps.org' + obj.url}">`;
                                             else document.getElementById('embed_content').innerHTML = '';
                                         }
@@ -1346,13 +1346,54 @@
                             }
 
                             if (document.getElementById('class_selector').value == 'all') {
+                                var combined = [];
+                                var sums = [0];
+                                
+                                Object.values(content).forEach((arr, i) => {
+                                    sums.push(sums[i] + arr.length);
+                                    arr.forEach(obj => {
+                                        const copy = { };
+                                        Object.assign(copy, obj);
+                                        if (copy.children?.length) copy.children = copy.children.map(id => id + sums[i]);
+                                        combined.push(copy);
+                                    });
+                                });
+                                
+                                var caseSensitive = settings.get('case') != null;
+                                var compareStr = document.getElementById('work_search').value;
+                                compareStr = caseSensitive ? compareStr : compareStr.toUpperCase();
+                                
+                                var sorted = compareStr ? combined.toSorted((a, b) => {
+                                    const A = caseSensitive ? a.title : a.title.toUpperCase();
+                                    const B = caseSensitive ? b.title : b.title.toUpperCase();
+                                    const aMatchCount = (A.match(new RegExp(compareStr, 'g')) || []).length;
+                                    const bMatchCount = (B.match(new RegExp(compareStr, 'g')) || []).length;
+                                    if (aMatchCount === bMatchCount) return A.indexOf(compareStr) - B.indexOf(compareStr);
+                                    return bMatchCount - aMatchCount;
+                                }) : combined.toSorted((a, b) => {
+                                    return b.date - a.date;
+                                });
 
+                                document.getElementById('todo_content').innerHTML = '';
+                                renderElements(document.getElementById('todo_content'), combined, sorted.map(obj => combined.indexOf(obj)), 0);
                             } else {
                                 const classId = document.getElementById('class_selector').value;
                                 var arr = content[classId];
 
+                                var compareStr = document.getElementById('work_search').value;
+                                compareStr = caseSensitive ? compareStr : compareStr.toUpperCase();
+
+                                var sorted = compareStr ? arr.toSorted((a, b) => {
+                                    const A = caseSensitive ? a.title : a.title.toUpperCase();
+                                    const B = caseSensitive ? b.title : b.title.toUpperCase();
+                                    const aMatchCount = (A.match(new RegExp(compareStr, 'g')) || []).length;
+                                    const bMatchCount = (B.match(new RegExp(compareStr, 'g')) || []).length;
+                                    if (aMatchCount === bMatchCount) return A.indexOf(compareStr) - B.indexOf(compareStr);
+                                    return bMatchCount - aMatchCount;
+                                }) : arr.filter(obj => obj.type == 'M');
+
                                 document.getElementById('todo_content').innerHTML = '';
-                                renderElements(document.getElementById('todo_content'), arr, arr.filter(obj => obj.type == 'M').map(obj => arr.indexOf(obj)), 0);
+                                renderElements(document.getElementById('todo_content'), arr, sorted.map(obj => arr.indexOf(obj)), 0);
                             }
                         }
 
@@ -1384,7 +1425,7 @@
                             convertToMaterialCheckbox(document.getElementById('case_checkbox'));
                             
                             document.getElementById('form_submit').onclick = async function () {
-                                if (document.getElementById('case_checkbox')) settings.set('case');
+                                if (document.getElementById('case_checkbox')) settings.set('case', '');
                                 else settings.delete('case');
 
                                 history.replaceState({}, document.title, '?' + settings.toString());
