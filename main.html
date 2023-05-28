@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>PowerClassroom</title>
+        <meta charset="utf-8">
+        <meta name="viewport">
+        <link rel="shortcut icon" href="/assets/favicon.ico" />
+        <style>
+            @font-face {
+                font-family: 'Google';
+                src: url('/assets/Google Sans.woff2');
+            }
+
+            @font-face {
+                font-family: 'Google Medium';
+                src: url('/assets/Google Sans Medium.woff2');
+            }
+            
+            body {
+                margin: 0;
+                font-family: "Google", Roboto, Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            a {
+                color: rgb(26, 115, 232);
+            }
+
+            :root[data-applied-mode="true"] {
+                color-scheme: dark;
+                --background: #000000;
+                --color: rgb(165, 169, 174);
+                --seperator: rgb(71, 69, 65);
+                --material-outlined-button-hover: rgb(63, 76, 93);
+                --rich-color: rgba(255, 255, 255, 0.87);
+            }
+
+            :root[data-applied-mode="false"] {
+                color-scheme: light;
+                --background: #ffffff;
+                --color: rgb(95, 99, 104);
+                --seperator: rgb(218, 220, 224);
+                --material-outlined-button-hover: rgb(210, 227, 252);
+                --rich-color: rgba(0, 0, 0, 0.87);
+            }
+
+            #top_bar {
+                height: 64px;
+                width: calc(100vw - 28px);
+                padding: 0 14px;
+                background-color: var(--background);
+                transition: background-color .1s linear, border-bottom .1s linear;
+                display: flex;
+                color: var(--color);
+                border-bottom: 1px var(--seperator) solid;
+            }
+
+            #top_bar > div {
+                display: flex;
+                flex: 1;
+                align-items: center;
+                height: inherit;
+            }
+
+            #app_title {
+                font-size: 1.375rem;
+                user-select: none;
+                display: flex;
+                height: 64px;
+                line-height: 1.75rem;
+                align-items: center;
+                color: var(--rich-color);
+            }
+
+            #content {
+                display: flex;
+                flex-direction: column;
+                height: calc(100vh - 65px);
+                background-color: var(--background);
+                transition: background-color .1s linear;
+                color: var(--color);
+                overflow-y: auto;
+            }
+
+            .material_outlined_button, .material_filled_button {
+                position: relative;
+                user-select: none;
+                box-sizing: border-box;
+                height: 36px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-left: 14px;
+                font-size: 14px;
+                font-family: 'Google Medium';
+                overflow: hidden;
+                white-space: nowrap;
+            }
+
+            .material_outlined_button > div, .material_filled_button > div {
+                position: absolute;
+                pointer-events: none;
+                background-size: cover;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+            }
+
+            .material_outlined_button {
+                border: 1px var(--seperator) solid;
+                line-height: 34px;
+                color: rgb(26, 115, 232) !important;
+                padding: 0 23px;
+            }
+
+            .material_outlined_button:hover {
+                border-color: var(--material-outlined-button-hover);
+                background-color: rgba(66, 133, 244, 0.04);
+                transition: box-shadow 280ms cubic-bezier(0.4,0,0.2,1);
+            }
+
+            .material_outlined_button:hover:active {
+                border: none;
+                padding: 1px 24px;
+                box-shadow: 0 2px 1px -1px rgba(26,115,232,0.2), 0 1px 1px 0 rgba(26,115,232,0.141), 0 1px 3px 0 rgba(26,115,232,0.122);
+            }
+
+            .material_filled_button {
+                line-height: 36px;
+                padding: 0 24px;
+                background: rgb(26, 115, 232);
+                color: #ffffff;
+            }
+
+            .material_filled_button:hover {
+                background-color: #2c7eea;
+                box-shadow: 0 2px 1px -1px rgba(26,115,232,0.2), 0 1px 1px 0 rgba(26,115,232,0.141), 0 1px 3px 0 rgba(26,115,232,0.122);
+            }
+
+            .material_filled_button:hover:active {
+                transition: box-shadow 280ms cubic-bezier(0.4,0,0.2,1);
+                box-shadow: 0 3px 5px -1px rgba(26,115,232,0.2), 0 6px 10px 0 rgba(26,115,232,0.141), 0 1px 18px 0 rgba(26,115,232,0.122);
+            }
+
+            .material_text_button {
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+                user-select: none;
+                font-size: 14px;
+                line-height: 36px;
+                padding: 0 8px;
+                border-radius: 4px;
+                margin-left: 8px;
+                font-family: 'Google Medium';
+            }
+
+            .material_text_button > div {
+                position: absolute;
+                top: 0;
+                left: 0;
+                pointer-events: none;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+            }
+
+            .material_text_button > div:not(.background) {
+                background-size: cover;
+            }
+
+            .material_text_button:hover > div.background {
+                opacity: 0.04;
+                background-color: currentColor;
+            }
+
+            #menu_button {
+                position: relative;
+                margin: 0 4px 0 -2px;
+                cursor: pointer;
+                border-radius: 50%;
+                height: 48px;
+            }
+
+            #menu_button:hover {
+                background-color: rgba(128, 128, 128, 0.2);
+            }
+
+            #menu_button > svg {
+                height: 24px;
+                padding: 12px;
+                pointer-events: none;
+            }
+
+            #menu_button > div {
+                position: absolute;
+                pointer-events: none;
+                border-width: 0;
+                top: 24px;
+                left: 24px;
+                border-style: solid;
+                border-color: rgba(128, 128, 128, 0.25);
+                border-radius: 50%;
+                transition: all .1s ease;
+            }
+
+            #menu_button:active > div {
+                top: 0;
+                left: 0;
+                border-width: 24px;
+            }
+
+            #menu {
+                position: fixed;
+                height: calc(100% - 16px);
+                width: 19rem;
+                border-right: 1px solid var(--seperator);
+                background-color: var(--background);
+                transform: translateX(-100%);
+                transition: transform .3s ease;
+                color: var(--color);
+                padding: 8px 0;
+                overflow: hidden auto;
+            }
+
+            @keyframes menu_animation {
+                0% {
+                    box-shadow: 0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15);
+                }
+                100% {
+                    box-shadow: 0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15);
+                }
+            }
+
+            #popup_form {
+                display: flex;
+                position: fixed;
+                visibility: hidden;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 100vw;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(32, 32, 32, 0.5);
+                transition: opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            @keyframes popup_pop {
+                0% {
+                    visibility: visible;
+                }
+                100% {
+                    visibility: visible;
+                }
+            }
+
+            #form_body {
+                color: var(--color);
+                box-shadow: 0 1px 3px 0 rgba(30, 34, 37, .3), 0 4px 8px 3px rgba(30, 34, 37, .15);
+                max-width: 24em;
+                background-color: var(--background);
+                border-radius: 8px;
+                transform: scale(0.9);
+            }
+            
+            #form_title {
+                font-family: 'Google Medium';
+                margin: 18px 24px 16px 24px;
+                color: var(--rich-color);
+            }
+
+            #form_subtitle:not(:empty) {
+                padding: 0 24px 16px 24px;
+            }
+
+            #form_content {
+                display: flex;
+                flex-direction: column;
+                padding: 16px 24px;
+            }
+
+            #form_content.border {
+                border-top: 1px solid var(--seperator);
+                border-bottom: 1px solid var(--seperator);
+            }
+
+            #form_buttons {
+                display: flex;
+                padding: 16px 8px 8px 24px;
+                justify-content: end;
+            }
+
+            .material_checkbox {
+                position: relative;
+                width: 40px;
+                height: 40px;
+                cursor: pointer;
+                border-radius: 50%;
+                margin-right: 5px;
+            }
+
+            .material_checkbox:hover {
+                background-color: rgb(31, 31, 31, 0.12);
+            }
+
+            .material_checkbox[checked]:hover {
+                background-color: rgb(26, 115, 232, 0.12);
+            }
+
+            .material_checkbox > div {
+                background-color: rgb(31, 31, 31, 0.12);
+            }
+
+            .material_checkbox[checked] > div {
+                background-color: rgb(26, 115, 232, 0.12);
+            }
+
+            .material_checkbox > div {
+                position: absolute;
+                height: 40px;
+                width: 40px;
+                top: 0;
+                left: 0;
+                border-radius: 50%;
+                transform: scale(0);
+            }
+
+            .material_checkbox > svg {
+                position: absolute;
+                top: 11px;
+                left: 11px;
+                display: block;
+                width: 14px;
+                height: 14px;
+                border-width: 2px;
+                border-style: solid;
+                border-color: rgb(68, 71, 70);
+                border-radius: 2px;
+                pointer-events: none;
+                background-color: transparent;
+                transition: background-color 0.15s linear 0.075s, border-color 0.15s linear 0.075s;
+            }
+
+            .material_checkbox[checked] > svg {
+                background-color: rgb(26, 115, 232);
+                border-color: rgb(26, 115, 232);
+                transition: background-color 0.15s linear, border-color 0.15s linear;
+            }
+
+            .material_checkbox[checked] > svg > path {
+                animation: material_checkbox_enter 0.15s linear, material_checkbox_stay 0.01s linear 0.15s infinite;
+            }
+
+            .material_checkbox > svg > path {
+                fill: none;
+                stroke-width: 3.12;
+                stroke: white;
+                animation: material_checkbox_leave 0.15s linear;
+            }
+
+            @keyframes material_checkbox_enter {
+                0% {
+                    d: path("M1.73,12.91 1.73,12.91 1.73,12.91");
+                }
+                25% {
+                    d: path("M1.73,12.91 4.915,16.095 4.915,16.095");
+                }
+                50% {
+                    d: path("M1.73,12.91 8.1,19.28 8.1,19.28");
+                }
+                75% {
+                    d: path("M1.73,12.91 8.1,19.28 15.445,11.935");
+                }
+                100% {
+                    d: path("M1.73,12.91 8.1,19.28 22.79,4.59");
+                }
+            }
+
+            @keyframes material_checkbox_stay {
+                0% {
+                    d: path("M1.73,12.91 8.1,19.28 22.79,4.59");
+                }
+                100% {
+                    d: path("M1.73,12.91 8.1,19.28 22.79,4.59");
+                }
+            }
+
+            @keyframes material_checkbox_leave {
+                0% {
+                    d: path("M1.73,12.91 8.1,19.28 22.79,4.59");
+                }
+                25% {
+                    d: path("M4.915,16.095 8.1,19.28 22.79,4.59");
+                }
+                50% {
+                    d: path("M8.1,19.28 8.1,19.28 22.79,4.59");
+                }
+                75% {
+                    d: path("M15.445,11.935 15.445,11.935 22.79,4.59");
+                }
+                100% {
+                    d: path("M22.79,4.59 22.79,4.59 22.79,4.59");
+                }
+            }
+
+            .material_outlined_textbox {
+                position: relative;
+                height: 42px;
+                width: 200px;
+                border-style: solid;
+                border-width: 1px;
+                border-color: var(--seperator);
+                border-radius: 4px;
+                margin: 10px 0 2px 0;
+            }
+
+            .material_outlined_textbox:hover {
+                border-color: var(--color);
+            }
+
+            .material_outlined_textbox:has(input:focus) {
+                border-color: rgb(26, 115, 232);
+                border-width: 2px;
+                margin: 9px 0 1px -1px;
+            }
+
+            .material_outlined_textbox > input {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 176px;
+                height: 100%;
+                padding: 0 12px;
+                font-size: 1rem;
+                background-color: transparent;
+                border: none !important;
+                outline: none !important;
+                caret-color: rgb(26, 115, 232);
+                color: var(--rich-color);
+            }
+
+            .material_outlined_textbox > div {
+                position: absolute;
+                font-size: 20px;
+                color: var(--color);
+                top: 50%;
+                left: 12px;
+                opacity: 0.5;
+                pointer-events: none;
+                white-space: nowrap;
+                border-radius: 100px;
+                background-color: var(--background);
+                padding: 0 6px;
+                transform: translate(0%, -50%);
+                transform-origin: 0 0;
+                -webkit-transform-origin: 0 0;
+                -ms-transform-origin: 0 0;
+                -moz-transform-origin: 0 0;
+                transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .material_outlined_textbox > input:valid + div, .material_outlined_textbox > input:focus + div  {
+                opacity: 1;
+                transform: translateY(calc(-50% - 19px)) scale(0.75);
+            }
+
+            .material_outlined_textbox > input:focus + div {
+                color: rgb(26, 115, 232);
+            }
+
+            .material_outlined_textbox > input:autofill {
+                border-radius: 4px;
+                box-shadow: 0 0 0 1000px var(--background) inset;
+            }
+
+            .material_filled_textbox {
+                position: relative;
+                height: 56px;
+                width: 200px;
+                border-bottom-style: solid;
+                border-bottom-width: 1px;
+                border-bottom-color: var(--color);
+                border-radius: 4px 4px 0 0;
+                font-size: 1rem;
+                background-color: rgba(128, 128, 128, 0.1);
+            }
+
+
+            .material_filled_textbox:hover {
+                background-color: rgba(128, 128, 128, 0.15);
+                border-bottom-color: var(--rich-color);
+            }
+
+            .material_filled_textbox:focus-within {
+                background-color: rgba(128, 128, 128, 0.2);
+            }
+
+            .material_filled_textbox > input {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                background-color: transparent;
+                border: none !important;
+                outline: none !important;
+                padding: 16px 16px 0 16px;
+                font-size: 1.25rem;
+                caret-color: rgb(26, 115, 232);
+                color: var(--rich-color);
+            }
+
+            .material_filled_textbox > div:nth-child(2) {
+                position: absolute;
+                display: flex;
+                flex-direction: column;
+                top: 0;
+                height: 100%;
+                justify-content: center;
+                font-size: 1.25rem;
+                user-select: none;
+                pointer-events: none;
+                margin-left: 16px;
+                transform: scale(1);
+                transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+                transform-origin: 0 0;
+                -webkit-transform-origin: 0 0;
+                -ms-transform-origin: 0 0;
+                -moz-transform-origin: 0 0;
+            }
+
+            .material_filled_textbox > input:valid + div:nth-child(2), .material_filled_textbox > input:focus + div:nth-child(2) {
+                transform: translateY(-7px) scale(0.8);
+            }
+
+            .material_filled_textbox > input:focus + div:nth-child(2) {
+                color: rgb(26, 115, 232);
+            }
+
+            .material_filled_textbox > div:nth-child(3) {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                overflow: hidden;
+                height: 2px;
+                pointer-events: none;
+                transform: translateY(1px);
+            }
+
+            .material_filled_textbox > div:nth-child(3) > div {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 0;
+                height: 100%;
+                opacity: 0;
+                background-size: cover;
+                background-color: rgb(26, 115, 232);
+                transition: width 0s linear .15s, opacity .15s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            #menu .button {
+                height: 3.5rem;
+                margin: 0 8px 0 0;
+                border-radius: 0 100px 100px 0;
+                cursor: pointer;
+                font-family: 'Google Medium';
+                display: flex;
+                align-items: center;
+                padding: 0 0 0 16px;
+                user-select: none;
+                fill: var(--color);
+                letter-spacing: 0.25px;
+                line-height: 1.25rem;
+                color: var(--rich-color);
+                font-size: 0.875rem;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+
+            #menu .button > svg {
+                width: 40px;
+                margin: 0 16px 0 0;
+            }
+
+            #menu .button:hover {
+                background-color: rgba(32, 33, 36, .04);
+            }
+
+            #menu .button:active {
+                background-color: rgba(26, 115, 232, .06);
+            }
+
+            #menu .button.active {
+                background-color: rgb(26, 115, 232, 0.12);
+            }
+
+            #menu .button.active:active {
+                background-color: rgba(26, 115, 232, 0.1728);
+            }
+
+            #menu > .seperator {
+                height: 1px;
+                background-color: var(--seperator);
+                margin: 8px 0 8px 0;
+                pointer-events: none;
+            }
+
+            #menu > .header {
+                display: flex;
+                height: 2.5rem;
+                align-items: center;
+                padding: 0 0 0 16px;
+                user-select: none;
+                pointer-events: none;
+                font-family: 'Google Medium';
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+                letter-spacing: 0.25px;
+            }
+
+            .classes_class_item {
+                background-clip: padding-box;
+                display: flex;
+                flex-direction: column;
+                height: 18rem;
+                margin-bottom: 1.5rem;
+                margin-right: 1.5rem;
+                overflow: hidden;
+                position: relative;
+                text-align: left;
+                width: 18rem;
+                border: 1px solid var(--seperator);
+                border-radius: 8px;
+                transition: border .1s linear;
+            }
+
+            .classes_class_item > div:nth-child(1) {
+                font-size: 1.375rem;
+                color: var(--background);
+                padding: 1rem;
+                transition: color .1s linear;
+                cursor: pointer;
+                user-select: none;
+                height: calc(4rem);
+            }
+
+            .classes_class_item > div:nth-child(1):hover {
+                text-decoration: underline;
+            }
+
+            .classes_class_item > div:nth-child(2) {
+                flex-grow: 1;
+                background-color: var(--background);
+                transition: background-color .1s linear;
+            }
+
+            .classes_class_item > div:nth-child(3) {
+                padding: 0.25rem;
+                display: flex;
+                justify-content: end;
+                border-top: 1px solid var(--seperator);
+                background-color: var(--background);
+                transition: background-color .1s linear, border .1s linear, fill .1s linear;
+            }
+
+            .classes_class_item > div:nth-child(3) > div {
+                position: relative;
+                padding: 14px;
+                height: 20px;
+                fill: var(--rich-color);
+                border-radius: 50%;
+                cursor: pointer;
+            }
+
+            .classes_class_item > div:nth-child(3) > div:hover {
+                background-color: rgba(128, 128, 128, 0.2);
+            }
+
+            .classes_class_item > div:nth-child(3) > div > div {
+                position: absolute;
+                pointer-events: none;
+                border-width: 0;
+                top: 24px;
+                left: 24px;
+                border-style: solid;
+                border-color: rgba(128, 128, 128, 0.25);
+                border-radius: 50%;
+                transition: all .1s ease;
+            }
+
+            .classes_class_item > div:nth-child(3) > div:active > div {
+                top: 0;
+                left: 0;
+                border-width: 24px;
+            }
+
+            .material_dropdown {
+                height: 54px;
+                width: calc(21.5rem - 2px);
+                border-width: 1px;
+                border-style: solid;
+                border-color: var(--seperator);
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 18px;
+                fill: var(--color);
+            }
+
+            .material_dropdown:hover {
+                border-color: var(--color);
+            }
+
+            .material_dropdown.active {
+                border-color: rgb(26, 115, 232);
+                border-width: 2px;
+                height: 52px;
+                width: calc(21.25rem - 4px);
+                fill:rgb(26, 115, 232);
+            }
+
+            .material_dropdown > div:nth-child(1) {
+                display: flex;
+                padding-left: 16px;
+                height: 100%;
+            }
+
+            .material_dropdown.active > div:nth-child(1) {
+                padding-left: 15px;
+            }
+
+            .material_dropdown > div:nth-child(1) > div {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                flex-grow: 1;
+            }
+
+            .material_dropdown > div:nth-child(1) > svg {
+                width: 10px;
+                margin: 0 19px;
+            }
+
+            .material_dropdown.active > div:nth-child(1) > svg {
+                width: 10px;
+                margin: 0 18px 0 20px;
+            }
+
+            .material_dropdown > div:nth-child(1) > svg > polygon:nth-child(1) {
+                opacity: 1;
+                transition: opacity 75ms linear 75ms;
+            }
+
+            .material_dropdown > div:nth-child(1) > svg > polygon:nth-child(2) {
+                opacity: 0;
+                transition: opacity 75ms linear;
+            }
+
+            .material_dropdown.active > div:nth-child(1) > svg > polygon:nth-child(1) {
+                opacity: 0;
+                transition: opacity 49.5ms linear;
+            }
+
+            .material_dropdown.active > div:nth-child(1) > svg > polygon:nth-child(2) {
+                opacity: 1;
+                transition: opacity .1005s linear 49.5ms;
+            }
+
+            .material_dropdown > div:nth-child(2) {
+                position: relative;
+                top: 2px;
+                z-index: 1;
+                display: none;
+                background: var(--background);
+                flex-direction: column;
+                box-shadow: 0 3px 5px -1px rgba(90, 94, 97, .2), 0 6px 10px 0 rgba(90, 94, 97, .14), 0 1px 18px 0 rgba(90, 94, 97, .12);
+                border-radius: 4px;
+                padding: 8px 0;
+            }
+
+            .material_dropdown > div:nth-child(2) > div {
+                position: relative;
+                user-select: none;
+                box-sizing: border-box;
+                cursor: pointer;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+
+            .material_dropdown > div:nth-child(2) > div > div:nth-child(1) {
+                position: absolute;
+                background-size: cover;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .material_dropdown > div:nth-child(2) > div > div:nth-child(2) {
+                padding: 0 16px;
+                height: 48px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .material_dropdown > div:nth-child(2) > div > div:nth-child(2):hover {
+                background-color: rgba(128, 128, 128, 0.2);
+            }
+
+            .material_dropdown > div:nth-child(2) > div.active > div:nth-child(2) {
+                background-color: rgb(26, 115, 232, 0.2);
+            }
+
+            #search_config_button {
+                position: relative;
+                padding: 14px;
+                height: 24px;
+                fill: var(--rich-color);
+                border-radius: 50%;
+                cursor: pointer;
+                margin: 0 1.5rem;
+            }
+
+            #search_config_button:hover {
+                background-color: rgba(128, 128, 128, 0.2);
+            }
+
+            #search_config_button > div {
+                position: absolute;
+                pointer-events: none;
+                border-width: 0;
+                top: 25px;
+                left: 25px;
+                border-style: solid;
+                border-color: rgba(128, 128, 128, 0.25);
+                border-radius: 50%;
+                transition: all .1s ease;
+            }
+
+            #search_config_button:active > div {
+                top: 0;
+                left: 0;
+                border-width: 26px;
+            }
+
+            #snackbar_container {
+                position: absolute;
+                left: 1rem;
+                bottom: 1rem;
+                width: 25rem;
+            }
+
+            #snackbar_container > div {
+                display: flex;
+                flex-direction: row;
+                background-color: rgba(128, 128, 128, 0.1);
+                color: var(--rich-color);
+                margin-top: 1rem;
+                padding: .5rem;
+                font-size: 1rem;
+                border-radius: 4px;
+                transition: background-color .1s linear, color .1s linear;
+            }
+
+            #snackbar_container > div.decay {
+                opacity: 0;
+                transition: opacity .5s linear;
+            }
+
+            #snackbar_container > div > div:not(.material_text_button) {
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                margin-left: .5rem;
+            }
+
+            #snackbar_container > div > div.material_text_button {
+                position: relative;
+                margin: -0.25rem;
+            }
+
+            #todo_content {
+                overflow-y: auto;
+                padding: 1rem;
+                margin: -1rem;
+                flex-grow: 1;
+            }
+
+            #todo_content .container {
+                display: flex;
+                flex-direction: column-reverse;
+                visibility: hidden;
+                max-height: 0;
+                transition: max-height .25s ease-out, visibility 0s linear .25s;
+                overflow: hidden;
+                border-left: 2px solid rgb(26, 115, 232);
+                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4) inset, 0 2px 6px 2px rgba(120, 124, 128, .25) inset;
+            }
+
+            #todo_content .container > div {
+                padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+            }
+
+            #todo_content .child.active > .container {
+                visibility: visible;
+                border-radius: 0 0rem 0.25rem 0;
+                transition: max-height 0.25s ease-in;
+            }
+
+            #todo_content .child:not(:last-child) {
+                margin-bottom: 0.25rem;
+            }
+
+            #todo_content .child > .header {
+                padding: 0.75rem;
+                border-radius: 0.5rem;
+                display: flex;
+                align-items: center;
+                fill: var(--seperator);
+                user-select: none;
+                transition: border-bottom-left-radius .1s linear .15s, border-bottom-right-radius .1s linear .15s;
+            }
+
+            #todo_content .child.active > .header {
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+                transition: none;
+            }
+
+            #todo_content .child > .header.clickable {
+                cursor: pointer;
+            }
+
+            #todo_content .child > .header > .icon {
+                margin-right: 0.5rem;
+                height: 2.5rem;
+                width: 2.5rem;
+            }
+
+            #todo_content .child > .header > .icon.arrow {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 1rem;
+                fill: var(--color);
+            }
+
+            #todo_content .child > .header:hover > .icon.arrow {
+                fill: var(--rich-color);
+            }
+
+            #todo_content .child > .header > .icon.arrow > svg > polygon:nth-child(1) {
+                opacity: 1;
+                transition: opacity 75ms linear 75ms;
+            }
+
+            #todo_content .child > .header > .icon.arrow > svg > polygon:nth-child(2) {
+                opacity: 0;
+                transition: opacity 75ms linear;
+            }
+
+            #todo_content .child.active > .header > .icon.arrow > svg > polygon:nth-child(1) {
+                opacity: 0;
+                transition: opacity 49.5ms linear;
+            }
+
+            #todo_content .child.active > .header > .icon.arrow > svg > polygon:nth-child(2) {
+                opacity: 1;
+                transition: opacity .1005s linear 49.5ms;
+            }
+
+            #todo_content .child > .header > .text {
+                flex-grow: 1;
+                transition: color .1s linear;
+            }
+
+            #todo_content .child > .header > .buttons {
+                user-select: none;
+                height: 30px;
+                display: flex;
+            }
+
+            #todo_content .child > .header > .buttons {
+                user-select: none;
+                height: 30px;
+                display: flex;
+                fill: var(--color);
+            }
+
+            #todo_content .child > .header > .buttons > div:hover {
+                cursor: pointer;
+                fill: var(--rich-color);
+            }
+
+            #todo_content .child > .header:hover {
+                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4), 0 2px 6px 2px rgba(120, 124, 127, .25);
+            }
+
+            #todo_content .child.active > .header:hover {
+                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4), 0 2px 6px 2px rgba(120, 124, 128, .25);
+                background: var(--background);
+            }
+
+            #todo_content .child > .header.clickable:active {
+                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4) inset, 0 2px 6px 2px rgba(120, 124, 128, .25) inset;
+            }
+
+            #embed_container {
+                display: flex;
+                flex-direction: column;
+                flex-grow: 0;
+                visibility: hidden;
+                height: 100%;
+                width: 0;
+                justify-content: center;
+                transition: flex-grow .2s linear, border-left .1s linear;
+                border-left: 1px solid var(--seperator);
+            }
+
+            #embed_container.visible {
+                flex-grow: 1;
+                visibility: visible;
+            }
+
+            #embed_top_bar {
+                display: flex;
+                fill: var(--color);
+                color: var(--rich-color);
+                border-bottom: 1px solid var(--seperator);
+                transition: all .1s linear;
+            }
+
+            #embed_title {
+                flex-grow: 1;
+                display: flex;
+                align-items: center;
+                font-size: 2rem;
+                margin: 0.5rem;
+            }
+
+            #embed_top_bar > div:nth-child(2) {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+            }
+
+            #embed_top_bar > div:nth-child(2) > svg {
+                margin: 0.5rem;
+            }
+
+            #embed_content {
+                height: 100%;
+                overflow: auto;
+            }
+
+            #open_embed_button:hover {
+                fill: var(--rich-color);
+            }
+
+            #close_embed_button:hover {
+                fill: rgb(255, 0, 0);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="top_bar">
+            <div>
+                <div id="menu_button">
+                    <div></div>
+                    <svg width="24" height="24" viewBox="0 0 24 24" focusable="false"><path fill="var(--color)" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
+                </div>
+                <div id="app_title">
+                    <span style="color: #00b6ef; margin-right: 3px;">Power</span>Classroom
+                </div>
+            </div>
+            <div style="justify-content: center;">
+
+            </div>
+            <div style="justify-content: end;">
+                <div id="theme_button" class="material_outlined_button">Dark mode</div>
+                <div id="equivalent_page_button" class="material_outlined_button">View equivalent page</div>
+                <div id="sign_in_button" class="material_filled_button">Sign in</div>
+            </div>
+        </div>
+        <div id="content">
+            Content
+        </div>
+        <div id="menu">
+            <div class="button active" id="home_button">
+                <svg focusable="false" width="24" height="24" viewBox="0 0 24 24"><path d="M12 3L4 9v12h16V9l-8-6zm6 16h-3v-6H9v6H6v-9l6-4.5 6 4.5v9z"></path></svg>
+                Home
+            </div>
+            <div class="button" id="grades_button">
+                <svg height="24" viewBox="0 96 960 960" width="24"><path d="M560 492v-68q33-14 67.5-21t72.5-7q26 0 51 4t49 10v64q-24-9-48.5-13.5T700 456q-38 0-73 9.5T560 492Zm0 220v-68q33-14 67.5-21t72.5-7q26 0 51 4t49 10v64q-24-9-48.5-13.5T700 676q-38 0-73 9t-67 27Zm0-110v-68q33-14 67.5-21t72.5-7q26 0 51 4t49 10v64q-24-9-48.5-13.5T700 566q-38 0-73 9.5T560 602ZM260 736q47 0 91.5 10.5T440 778V384q-41-24-87-36t-93-12q-36 0-71.5 7T120 364v396q35-12 69.5-18t70.5-6Zm260 42q44-21 88.5-31.5T700 736q36 0 70.5 6t69.5 18V364q-33-14-68.5-21t-71.5-7q-47 0-93 12t-87 36v394Zm-40 118q-48-38-104-59t-116-21q-42 0-82.5 11T100 858q-21 11-40.5-1T40 822V340q0-11 5.5-21T62 304q46-24 96-36t102-12q58 0 113.5 15T480 316q51-30 106.5-45T700 256q52 0 102 12t96 36q11 5 16.5 15t5.5 21v482q0 23-19.5 35t-40.5 1q-37-20-77.5-31T700 816q-60 0-116 21t-104 59ZM280 562Z"/></svg>
+                Grades (not working)
+            </div>
+            <div class="button" id="calendar_button">
+                <svg focusable="false" width="24" height="24" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"></path></svg>
+                Calendar (not working)
+            </div>
+            <div class="seperator"></div>
+            <div class="header">Enrolled</div>
+            <div class="button" id="todo_button">
+                <svg enable-background="new 0 0 24 24" focusable="false" height="24" viewBox="0 0 24 24" width="24"><g><rect fill="none" height="24" width="24"></rect></g><g><g><path d="M20,3H4C2.9,3,2,3.9,2,5v14c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V5 C22,3.9,21.1,3,20,3z M20,19H4V5h16V19z" fill-rule="evenodd"></path><polygon fill-rule="evenodd" points="19.41,10.42 17.99,9 14.82,12.17 13.41,10.75 12,12.16 14.82,15"></polygon><rect fill-rule="evenodd" height="2" width="5" x="5" y="7"></rect><rect fill-rule="evenodd" height="2" width="5" x="5" y="11"></rect><rect fill-rule="evenodd" height="2" width="5" x="5" y="15"></rect></g></g></svg>
+                To-do
+            </div>
+            <div id="menu_classes"></div>
+            <div class="seperator"></div>
+            <div class="button" id="settings_button">
+                <svg focusable="false" width="24" height="24" viewBox="0 0 24 24"><path d="M13.85 22.25h-3.7c-.74 0-1.36-.54-1.45-1.27l-.27-1.89c-.27-.14-.53-.29-.79-.46l-1.8.72c-.7.26-1.47-.03-1.81-.65L2.2 15.53c-.35-.66-.2-1.44.36-1.88l1.53-1.19c-.01-.15-.02-.3-.02-.46 0-.15.01-.31.02-.46l-1.52-1.19c-.59-.45-.74-1.26-.37-1.88l1.85-3.19c.34-.62 1.11-.9 1.79-.63l1.81.73c.26-.17.52-.32.78-.46l.27-1.91c.09-.7.71-1.25 1.44-1.25h3.7c.74 0 1.36.54 1.45 1.27l.27 1.89c.27.14.53.29.79.46l1.8-.72c.71-.26 1.48.03 1.82.65l1.84 3.18c.36.66.2 1.44-.36 1.88l-1.52 1.19c.01.15.02.3.02.46s-.01.31-.02.46l1.52 1.19c.56.45.72 1.23.37 1.86l-1.86 3.22c-.34.62-1.11.9-1.8.63l-1.8-.72c-.26.17-.52.32-.78.46l-.27 1.91c-.1.68-.72 1.22-1.46 1.22zm-3.23-2h2.76l.37-2.55.53-.22c.44-.18.88-.44 1.34-.78l.45-.34 2.38.96 1.38-2.4-2.03-1.58.07-.56c.03-.26.06-.51.06-.78s-.03-.53-.06-.78l-.07-.56 2.03-1.58-1.39-2.4-2.39.96-.45-.35c-.42-.32-.87-.58-1.33-.77l-.52-.22-.37-2.55h-2.76l-.37 2.55-.53.21c-.44.19-.88.44-1.34.79l-.45.33-2.38-.95-1.39 2.39 2.03 1.58-.07.56a7 7 0 0 0-.06.79c0 .26.02.53.06.78l.07.56-2.03 1.58 1.38 2.4 2.39-.96.45.35c.43.33.86.58 1.33.77l.53.22.38 2.55z"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+                Settings
+            </div>
+            <div class="button" id="help_button">
+                <svg height="24" viewBox="0 -960 960 960" width="24"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+                Help
+            </div>
+        </div>
+        <div id="snackbar_container"></div>
+        <div id="popup_form">
+            <div id="form_body">
+                <div id="form_title"></div>
+                <div id="form_subtitle"></div>
+                <div id="form_content"></div>
+                <div id="form_buttons">
+                    <div id="form_cancel" class="material_text_button" style="color: var(--color)">Cancel</div>
+                    <div id="form_submit" class="material_text_button" style="color: rgb(26, 115, 232)">Submit</div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            var darkMode = localStorage.getItem('darkMode');
+            var eqURL = 'https://brightspace.aacps.org/d2l/home/7684';
+            var classes = JSON.parse(localStorage.getItem('classes') ?? '[]');
+            var content = JSON.parse(localStorage.getItem('content') ?? '{}');
+            var menuOpen = false;
+
+            console.log('%cWARNING!\n%cUsing this console may allow attackers to impersonate you and steal your information and accounts using an attack called Self-XSS.\nDo not enter or paste code that you did not write or do not understand.', 'background: yellow; color: red; font-weight: bolder; font-size: 50px', 'font-size: 25px');
+
+            loadClasses(classes, true);
+            loadContent(window.location.origin == 'file://' ? new URLSearchParams(window.location.search).get('path') ?? '/' : window.location.pathname);
+
+            if (darkMode == undefined) {
+                darkMode = '' + (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                localStorage.setItem('darkMode', darkMode);
+            }
+
+            document.getElementById('theme_button').onclick = function () {
+                localStorage.setItem('darkMode', darkMode);
+                document.getElementById('theme_button').innerHTML = darkMode == 'true' ? 'Light mode' : 'Dark mode';
+                convertToMaterialButton(document.getElementById('theme_button'));
+                document.documentElement.dataset.appliedMode = darkMode;
+                darkMode = darkMode == 'true' ? 'false' : 'true';
+            }
+
+            document.getElementById('theme_button').onclick();
+
+            window.onpopstate = function () {
+                loadContent(window.location.origin == 'file://' ? new URLSearchParams(window.location.search).get('path') ?? '/' : window.location.pathname);
+            }
+
+            function loadContent (path) {
+                var id;
+                var title;
+                var html;
+                var callback = () => {};
+
+                if (path == '/settings') {
+                    id = 'settings_button';
+                    title = 'Settings';
+                    html = `Settings`;
+                } else if (path.startsWith('/to-do')) {
+                    id = 'todo_button';
+                    title = 'To-do';
+                    html = `
+                        <div style="display: flex; justify-content: center; height: 100%;">
+                            <div style="display: flex; flex-direction: column; width: 32rem; padding: 1rem; overflow-y: auto;">
+                                <div style="display: flex; margin-bottom: 1rem; align-items: center;">
+                                    <div id="work_search" class="material_filled_textbox" style="flex-grow: 1;">Search for content</div>
+                                    <div id="search_config_button">
+                                        <div></div>
+                                        <svg height="24" viewBox="0 96 960 960" width="24"><path d="M440 936V696h80v80h320v80H520v80h-80Zm-320-80v-80h240v80H120Zm160-160v-80H120v-80h160v-80h80v240h-80Zm160-80v-80h400v80H440Zm160-160V216h80v80h160v80H680v80h-80Zm-480-80v-80h400v80H120Z"/></svg>
+                                    </div>
+                                </div>
+                                <div style="display: flex; margin-bottom: 1rem;">
+                                    <div id="class_selector" class="material_dropdown">
+                                        <div value="all">All classes</div>
+                                        ${classes.map(course => `<div value="${course.id}">${course.name}</div>`).join('')}
+                                    </div>
+                                    <div style="display: flex; justify-content: center; align-items: center; flex-grow: 1;">
+                                        <div id="get_content_button" class="material_outlined_button" style="color: rgb(26, 115, 232);">Get class content</div>
+                                    </div>
+                                </div>
+                                <div id="todo_content"></div>
+                            </div>
+                            <div id="embed_container">
+                                <div id="embed_top_bar">
+                                    <div id="embed_title"></div>
+                                    <div>
+                                        <svg id="open_embed_button" height="32" width="32" viewBox="0 -960 960 960"><path d="M186.666-120q-27 0-46.833-19.833T120-186.666v-586.668q0-27 19.833-46.833T186.666-840H466v66.666H186.666v586.668h586.668V-466H840v279.334q0 27-19.833 46.833T773.334-120H186.666ZM384-336.667 337.333-384l389.334-389.334H532.666V-840H840v307.334h-66.666v-193.335L384-336.667Z"/></svg>
+                                        <svg id="close_embed_button" height="32" width="32" viewBox="0 -960 960 960"><path d="m251.333-204.667-46.666-46.666L433.334-480 204.667-708.667l46.666-46.666L480-526.666l228.667-228.667 46.666 46.666L526.666-480l228.667 228.667-46.666 46.666L480-433.334 251.333-204.667Z"/></svg>
+                                    </div>
+                                </div>
+                                <div id="embed_content"></div>
+                            </div>
+                        </div>
+                    `;
+
+                    callback = function () {
+                        convertToMaterialTextbox(document.getElementById('work_search'));
+                        convertToMaterialSelect(document.getElementById('class_selector'));
+                        convertToMaterialButton(document.getElementById('get_content_button'));
+
+                        const settings = new URLSearchParams(window.location.search);
+
+                        document.getElementById('work_search').value = settings.get('search');
+                        if (settings.has('class')) {
+                            const value = settings.get('class');
+                            const element = document.getElementById('class_selector');
+                            element.querySelector('.active')?.classList?.remove('active');
+                            element.querySelector(`div[value="${value}"]`)?.classList?.add('active');
+                            element.children[0].children[0].innerHTML = classes.find(course => course.id == value).name;
+                            element.value = value;
+                            eqURL = 'https://brightspace.aacps.org/d2l/le/lessons/' + value;
+                        }
+
+                        function drawElements () {
+                            function renderElements (parent, arr, ids, layer) {
+                                var group = [];
+                                for (const obj of ids.map(id => arr[id])) {
+                                    const child = document.createElement('div');
+                                    const header = document.createElement('div');
+                                    
+                                    child.classList.add('child');
+                                    header.classList.add('header');
+
+                                    const icon = document.createElement('div');
+                                    const textElement = document.createElement('div');
+                                    const buttonsContainer = document.createElement('div');
+
+                                    icon.classList.add('icon');
+                                    textElement.classList.add('text');
+                                    buttonsContainer.classList.add('buttons');
+                                    
+                                    switch (obj.type) {
+                                        case 'M':
+                                        case 'SM':
+                                            if (obj.children.length) {
+                                                header.classList.add('clickable');
+                                                icon.classList.add('arrow');
+                                                icon.innerHTML = '<svg height="10px" width="10px" viewBox="7 10 10 5" focusable="false"><polygon stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon><polygon stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon></svg>';
+                                            }
+                                            break;
+                                        case 'GA':
+                                            icon.innerHTML = '<svg style="height: 100%; width: 100%" viewBox="0 0 192 192"><g id="foreground"><path id="clipboard" fill="#FBBC04" d="M44,20h104c6.63,0,12,5.37,12,12v140c0,6.63-5.37,12-12,12H44c-6.63,0-12-5.37-12-12V32C32,25.37,37.37,20,44,20z"/><path id="document_2_" fill="#4285F4" d="M116,168H52c-2.21,0-4-1.79-4-4V40c0-2.21,1.79-4,4-4h88c2.21,0,4,1.79,4,4v100"/><path id="document_x5F_flap" fill="#1967D2" d="M120,140h24l-28,28v-24C116,141.79,117.79,140,120,140z"/><path id="detail" fill="#F1F3F4" d="M64,128v-8h64v8H64z M64,144v-8h32v8H64z M64,112v-8h64v8H64z M75,78.94l5.66-5.66L91.97,84.6l28.28-28.28l5.66,5.66L91.97,95.91L75,78.94z"/><path id="clip" fill="#174EA6" d="M96,8c-17.36,0-36,9.4-36,21v15h72V29C132,17.4,113.36,8,96,8z"/><circle id="hole" fill="#FFFFFF" cx="96" cy="26" r="6"/></g></svg>';
+                                            break;
+                                        case 'BA':
+                                            icon.innerHTML = '<svg fill="#e87512" style="height: 100%; width: 100%" viewBox="0 0 141.64 189"><ellipse cx="33" cy="33" rx="7" ry="7"></ellipse><ellipse cx="66.5" cy="65.5" rx="7" ry="7"></ellipse><ellipse cx="46.5" cy="91.5" rx="7" ry="7"></ellipse><ellipse cx="126.5" cy="94.5" rx="7.5" ry="7.5"></ellipse><ellipse cx="33.5" cy="155.5" rx="7" ry="7"></ellipse><rect x="33" y="26" width="44" height="14"></rect><rect x="33.5" y="148.5" width="43" height="14"></rect><rect x="46.5" y="84.5" width="30" height="14"></rect><rect x="20" y="0" width="57" height="14"></rect><rect x="19" y="174" width="61" height="15"></rect><rect x="0" y="19" width="15" height="151"></rect><rect x="66.5" y="58.5" width="10.5" height="14"></rect><path d="M 0 170 q 4 17 19 19 L 19 174 q -3 -1 -4 -4"></path><path d="M 0 19 q 4 -19 20 -19 L 20 14 q -4 1 -5 5"></path><path d="M 77 26 C 106 26 106 72.5 77 72.5 L 77 58.5 C 87 58.5 87 40 77 40"></path><path d="M 76.5 84.5 C 127 84.5 127 162.5 76.5 162.5 L 76.5 148.5 C 108 148.5 108 98.5 76.5 98.5"></path><path d="M 77 0 C 141 0 141 97 77 97 L 77 84.5 C 121 84.5 121 14 77 14"></path><path d="M 133.8 93 C 160 148.5 115 187.5 80 189 L 80 174 C 117.5 169 138 134 119 94.5"></path></svg>';
+                                            break;
+                                        case 'F':
+                                            icon.innerHTML = '<svg style="height: 100%; width: 100%; fill: var(--color); transition: fill .1s linear" viewBox="0 -960 960 960"><path d="M319.333-246.667h321.334v-66.666H319.333v66.666Zm0-166.667h321.334V-480H319.333v66.666ZM226.666-80q-27 0-46.833-19.833T160-146.666v-666.668q0-27 19.833-46.833T226.666-880H574l226 226v507.334q0 27-19.833 46.833T733.334-80H226.666Zm314.001-542.667h192.667L540.667-813.334v190.667Z"/></svg>';
+                                            break;
+                                        case 'L':
+                                            if (obj.url.startsWith('https://docs.google.com/document')) {
+                                                icon.innerHTML = '<svg style="height: 100%; width: 100%" viewBox="0 0 24 24" fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><path fill="#FFF" fill-rule="nonzero" d="M7.25 12.25h9.5V14h-9.5v-1.75zm0 3h7V17h-7v-1.75z"/><path fill="#1967D2" fill-rule="nonzero" d="M14.5 6.5l3.016.57L20 6.5 14.5 1l-.759 2.607z"/><path fill="#FFF" fill-rule="nonzero" d="M7.25 9.25h9.5V11h-9.5z"/><path fill="#4285F4" fill-rule="nonzero" d="M14.5 6.5V1h-9C4.67125 1 4 1.67125 4 2.5v19c0 .82875.67125 1.5 1.5 1.5h13c.82875 0 1.5-.67125 1.5-1.5v-15h-5.5zM14 16.75H7.5V15.5H14v1.25zm2.5-3h-9V12.5h9v1.25zm0-3h-9V9.5h9v1.25z"/></svg>';
+                                            } else if (obj.url.startsWith('https://docs.google.com/presentation')) {
+                                                icon.innerHTML = '<svg style="height: 100%; width: 100%" viewBox="0 0 24 24" fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><path fill="#F29900" fill-rule="nonzero" d="M14.5 1L20 6.5l-2.75.5-2.75-.5L14 4z"/><path fill="#FBBC04" fill-rule="nonzero" d="M14.5 6.5V1h-9C4.67125 1 4 1.67125 4 2.5v19c0 .82875.67125 1.5 1.5 1.5h13c.82875 0 1.5-.67125 1.5-1.5v-15h-5.5z"/><path fill="#FFF" fill-rule="nonzero" d="M7 9.5v6.75h10V9.5H7zm8.75 5.5h-7.5v-4.25h7.5V15z"/></svg>';
+                                            } else if (obj.url.startsWith('https://docs.google.com/forms') || obj.url.startsWith('https://forms.gle')) {
+                                                icon.innerHTML = '<svg style="height: 100%; width: 100%" viewBox="0 0 24 24" fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><path fill="#56368A" fill-rule="nonzero" d="M14.5 6.5l3.016.57L20 6.5 14.5 1l-.759 2.607z"/><path fill="#7248B9" fill-rule="nonzero" d="M14.5 6.5V1h-9C4.67125 1 4 1.67125 4 2.5v19c0 .82875.67125 1.5 1.5 1.5h13c.82875 0 1.5-.67125 1.5-1.5v-15h-5.5z"/><path fill="#FFF" fill-rule="nonzero" d="M8.25 16.875c-.41375 0-.75-.33625-.75-.75s.33625-.75.75-.75.75.33625.75.75-.33625.75-.75.75zm0-3c-.41375 0-.75-.33625-.75-.75s.33625-.75.75-.75.75.33625.75.75-.33625.75-.75.75zm0-3c-.41375 0-.75-.33625-.75-.75s.33625-.75.75-.75.75.33625.75.75-.33625.75-.75.75zm8.25 5.875h-6.25V15.5h6.25v1.25zm0-3h-6.25V12.5h6.25v1.25zm0-3h-6.25V9.5h6.25v1.25z"/></svg>';
+                                            } else if (obj.url.startsWith('https://docs.google.com/spreadsheets')) {
+                                                icon.innerHTML = '<svg style="height: 100%; width: 100%" viewBox="0 0 24 24" fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><path fill="#188038" fill-rule="nonzero" d="M14.5 1L20 6.5l-2.75.5-2.75-.5-.5-2.75z"/><path fill="#34A853" fill-rule="nonzero" d="M14.5 6.5V1h-9C4.67125 1 4 1.67125 4 2.5v19c0 .82875.67125 1.5 1.5 1.5h13c.82875 0 1.5-.67125 1.5-1.5v-15h-5.5z"/><path fill="#FFF" fill-rule="nonzero" d="M7 9.5v7.25h10V9.5H7zm4.375 6H8.25v-1.75h3.125v1.75zm0-3H8.25v-1.75h3.125v1.75zm4.375 3h-3.125v-1.75h3.125v1.75zm0-3h-3.125v-1.75h3.125v1.75z"/></svg>';
+                                            } else if (obj.url.startsWith('https://sites.google.com')) {
+                                                icon.innerHTML = '<svg style="height: 100%; width: 100%" viewBox="0 0 24 24" fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/>\<path fill="#354287" fill-rule="nonzero" d="M14.5 6.5l3.016.57L20 6.5 14.5 1l-.759 2.607z"/><path fill="#4758B5" fill-rule="nonzero" d="M14.5 6.5V1h-9C4.67125 1 4 1.67125 4 2.5v19c0 .82875.67125 1.5 1.5 1.5h13c.82875 0 1.5-.67125 1.5-1.5v-15h-5.5z"/><path fill="#FFF" fill-rule="nonzero" d="M14 16.25H7.5V12H14v4.25zm2.5 0h-1.25V12h1.25v4.25zm0-5.5h-9V9.5h9v1.25z"/></svg>';
+                                            } else if (obj.url.startsWith('https://drive.google.com')) {
+                                                icon.innerHTML = '<svg style="height: 100%; width: 100%" viewBox="0 0 24 24" fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><path fill="#EA4335" fill-rule="nonzero" d="M16.04125 15.25l.94875 3.27125 2.48625 2.6775c.33625-.19375.6225-.475.82375-.82375l2.31-4c.20125-.3475.30125-.73625.30125-1.125l-3.5475-.6875-3.3225.6875z"/><path fill="#188038" fill-rule="nonzero" d="M15.435 2.30125C15.09875 2.1075 14.7125 2 14.31 2H9.69125c-.4 0-.79.11-1.125.30125l.995 3.35125 2.43 2.58L12 8.25l2.4475-2.61125.9875-3.3375z"/><path fill="#1967D2" fill-rule="nonzero" d="M7.95875 15.25l-3.54125-.8125L1.09 15.25c0 .3875.1.775.3 1.12375L3.7 20.375c.20125.3475.4875.62875.82375.82375l2.44875-2.5225.98625-3.42625z"/><path fill="#FBBC04" fill-rule="nonzero" d="M19.43375 8.625l-3.175-5.5c-.20125-.34875-.4875-.63-.82375-.82375L12 8.25l4.04125 7H22.91c0-.38875-.1-.77625-.30125-1.125l-3.175-5.5z"/><path fill="#4285F4" fill-rule="nonzero" d="M16.04125 15.25h-8.0825l-3.435 5.94875c.33625.19375.7225.30125 1.125.30125H18.35c.4025 0 .78875-.1075 1.125-.30125L16.04125 15.25z"/><path fill="#34A853" fill-rule="nonzero" d="M12 8.25L8.56625 2.30125C8.23 2.495 7.945 2.775 7.74375 3.1225L1.39 14.12875c-.2.3475-.3.735-.3 1.12125h6.86875L12 8.25z"/></svg>';
+                                            } else {
+                                                icon.innerHTML = '<svg style="height: 100%; width: 100%; fill: var(--color); transition: fill .1s linear" viewBox="0 -960 960 960"><path d="M446.667-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h166.667v66.666H280q-55.556 0-94.445 38.844-38.889 38.843-38.889 94.333 0 55.49 38.889 94.491 38.889 39 94.445 39h166.667V-280ZM323.333-446.667v-66.666h313.334v66.666H323.333Zm190 166.667v-66.666H680q55.556 0 94.445-38.844 38.889-38.843 38.889-94.333 0-55.49-38.889-94.491-38.889-39-94.445-39H513.333V-680H680q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H513.333Z"/></svg>';
+                                            }
+                                            break;
+                                    }
+
+                                    const date = new Date(obj.date);
+                                    textElement.innerHTML = `<span style="font-family: 'Google Medium'; color: var(--rich-color); transition: color .1s linear">${obj.title}</span><br>Edited on: ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][date.getDay()]}, ${[ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ][date.getMonth()]} ${date.getDate()} ${(date.getHours() % 12 == 0 ? '12' : date.getHours() % 12 + '').padStart(2, '0')}:${(date.getMinutes() + '').padStart(2, '0')} ${date.getHours() > 12 ? 'PM' : 'AM'}`;
+
+                                    if ((obj.url || obj.description) && !(obj.url?.startsWith('https://sites.google.com') || obj.url?.startsWith('https://drive.google.com'))) {
+                                        const embedButton = document.createElement('div');
+                                        embedButton.innerHTML = '<svg height="30" width="30" viewBox="0 -960 960 960"><path d="M279.999-213.333q-27 0-46.833-19.833t-19.833-46.833v-133.335h66.666v133.335h533.335v-466.668H279.999v133.334h-66.666v-200.001q0-27 19.833-46.833T279.999-880h533.335q27 0 46.833 19.833T880-813.334v533.335q0 27-19.833 46.833t-46.833 19.833H279.999ZM146.666-80q-27 0-46.833-19.833T80-146.666v-600.001h66.666v600.001h600.001V-80H146.666Zm360-269.333L460-395.999 543-480H213.333v-66.666H543l-83-84.001 46.666-46.666 164 164-164 164Z"/></svg>';
+                                        embedButton.onclick = function () {
+                                            document.getElementById('embed_title').innerHTML = obj.title;
+                                            document.getElementById('embed_container').classList.add('visible');
+                                            document.getElementById('open_embed_button').onclick = function () {
+                                                window.open(obj.url.startsWith('https://') ? obj.url : 'https://brightspace.aacps.org' + obj.url, '_blank');
+                                            }
+                                            if (obj.description) document.getElementById('embed_content').innerHTML = obj.description.replace(/(src|href)="\//gm, '$1="https://brightspace.aacps.org/');
+                                            else if (obj.url) document.getElementById('embed_content').innerHTML = `<iframe style="border: none; width: 100%; height: calc(100% - 5px);" src="${obj.url.startsWith('https://') ? obj.url : 'https://brightspace.aacps.org' + obj.url}">`;
+                                            else document.getElementById('embed_content').innerHTML = '';
+                                        }
+                                        buttonsContainer.appendChild(embedButton);
+                                    }
+
+                                    if (obj.url) {
+                                        const openButton = document.createElement('div');
+                                        openButton.innerHTML = '<svg height="30" width="30" viewBox="0 -960 960 960"><path d="M186.666-120q-27 0-46.833-19.833T120-186.666v-586.668q0-27 19.833-46.833T186.666-840H466v66.666H186.666v586.668h586.668V-466H840v279.334q0 27-19.833 46.833T773.334-120H186.666ZM384-336.667 337.333-384l389.334-389.334H532.666V-840H840v307.334h-66.666v-193.335L384-336.667Z"/></svg>'
+                                        openButton.onclick = function () {
+                                            window.open(obj.url.startsWith('https://') ? obj.url : 'https://brightspace.aacps.org' + obj.url, '_blank');
+                                        }
+                                        buttonsContainer.appendChild(openButton);
+                                    }
+
+                                    if (icon.innerHTML) header.appendChild(icon);
+                                    header.appendChild(textElement);
+                                    if (buttonsContainer.innerHTML) header.appendChild(buttonsContainer);
+                                    child.appendChild(header);
+
+                                    if (obj.children?.length) {
+                                        const container = document.createElement('div');
+                                        const subContainer = document.createElement('div');
+                                        container.classList.add('container');
+
+                                        subContainer.draw = function (add) {
+                                            const height = container.scrollHeight + (add ?? 0);
+                                            container.style.maxHeight = height + 'px';
+                                            if (parent.draw) parent.draw(height);
+                                        }
+
+                                        header.onclick = function (event) {
+                                            if (event.target == header || event.target.parentNode == header || event.target.parentNode.classList.contains('text') || event.target.parentNode.classList.contains('icon') || event.target.parentNode.parentNode.classList.contains('icon')) {
+                                                child.classList.toggle('active');
+                                                if (child.classList.contains('active')) {
+                                                    subContainer.draw();
+                                                } else {
+                                                    container.removeAttribute('style');
+                                                }
+                                            }
+                                        }
+
+                                        renderElements(subContainer, arr, obj.children, layer + 1);
+                                        container.appendChild(subContainer);
+                                        child.appendChild(container);
+                                    }
+
+                                    parent.appendChild(child);
+                                }
+                            }
+
+                            if (document.getElementById('class_selector').value == 'all') {
+                                var combined = [];
+                                var sums = [0];
+                                
+                                Object.values(content).forEach((arr, i) => {
+                                    sums.push(sums[i] + arr.length);
+                                    arr.forEach(obj => {
+                                        const copy = { };
+                                        Object.assign(copy, obj);
+                                        if (copy.children?.length) copy.children = copy.children.map(id => id + sums[i]);
+                                        combined.push(copy);
+                                    });
+                                });
+                                
+                                var caseSensitive = settings.get('case') != null;
+                                var compareStr = document.getElementById('work_search').value;
+                                compareStr = caseSensitive ? compareStr : compareStr.toUpperCase();
+                                
+                                var sorted = compareStr ? combined.toSorted((a, b) => {
+                                    const A = caseSensitive ? a.title : a.title.toUpperCase();
+                                    const B = caseSensitive ? b.title : b.title.toUpperCase();
+                                    const aMatchCount = (A.match(new RegExp(compareStr, 'g')) || []).length;
+                                    const bMatchCount = (B.match(new RegExp(compareStr, 'g')) || []).length;
+                                    if (aMatchCount === bMatchCount) return A.indexOf(compareStr) - B.indexOf(compareStr);
+                                    return bMatchCount - aMatchCount;
+                                }) : combined.toSorted((a, b) => {
+                                    return b.date - a.date;
+                                });
+
+                                document.getElementById('todo_content').innerHTML = '';
+                                renderElements(document.getElementById('todo_content'), combined, sorted.map(obj => combined.indexOf(obj)), 0);
+                            } else {
+                                const classId = document.getElementById('class_selector').value;
+                                var arr = content[classId];
+
+                                var compareStr = document.getElementById('work_search').value;
+                                compareStr = caseSensitive ? compareStr : compareStr.toUpperCase();
+
+                                var sorted = compareStr ? arr.toSorted((a, b) => {
+                                    const A = caseSensitive ? a.title : a.title.toUpperCase();
+                                    const B = caseSensitive ? b.title : b.title.toUpperCase();
+                                    const aMatchCount = (A.match(new RegExp(compareStr, 'g')) || []).length;
+                                    const bMatchCount = (B.match(new RegExp(compareStr, 'g')) || []).length;
+                                    if (aMatchCount === bMatchCount) return A.indexOf(compareStr) - B.indexOf(compareStr);
+                                    return bMatchCount - aMatchCount;
+                                }) : arr.filter(obj => obj.type == 'M');
+
+                                document.getElementById('todo_content').innerHTML = '';
+                                renderElements(document.getElementById('todo_content'), arr, sorted.map(obj => arr.indexOf(obj)), 0);
+                            }
+                        }
+
+                        document.getElementById('class_selector').onchange = function (value) {
+                            if (value == 'all') {
+                                eqURL = 'https://brightspace.aacps.org/d2l/home/7684';
+                            } else {
+                                eqURL = 'https://brightspace.aacps.org/d2l/le/lessons/' + value;
+                            }
+                            if (value == 'all') settings.delete('class');
+                            else settings.set('class', value);
+                            history.replaceState({}, document.title, '?' + settings.toString());
+                            drawElements();
+                        }
+                        
+                        document.getElementById('search_config_button').onclick = function () {
+                            const formElement = document.getElementById('popup_form');
+
+                            document.getElementById('form_title').innerText = 'Set search filters?';
+                            document.getElementById('form_subtitle').innerHTML = `Select the filters you want and then submit to save your selection.`;
+                            document.getElementById('form_content').classList.add('border');
+                            document.getElementById('form_content').innerHTML = `
+                                <div style="display: flex; align-items: center; user-select: none;">
+                                    <div class="material_checkbox" id="case_checkbox"></div>
+                                    Case-sensitive search
+                                </div>
+                            `;
+
+                            convertToMaterialCheckbox(document.getElementById('case_checkbox'));
+                            
+                            document.getElementById('form_submit').onclick = async function () {
+                                if (document.getElementById('case_checkbox')) settings.set('case', '');
+                                else settings.delete('case');
+
+                                history.replaceState({}, document.title, '?' + settings.toString());
+
+                                document.getElementById('form_cancel').onclick();
+                            }
+
+                            formElement.style.opacity = 1;
+                            formElement.style.visibility = 'visible';
+                            formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
+                            document.getElementById('form_body').style.transform = 'scale(1)';
+                            document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
+                        }
+
+                        document.getElementById('close_embed_button').onclick = function () {
+                            document.getElementById('embed_container').classList.remove('visible');
+                        }
+
+                        document.getElementById('work_search').oninput = function () {
+                            if (document.getElementById('work_search').value) settings.set('search', document.getElementById('work_search').value);
+                            else settings.delete('search');
+                            history.replaceState({}, document.title, '?' + settings.toString());
+                            drawElements();
+                        }
+
+                        document.getElementById('get_content_button').onclick = function () {
+                            const formElement = document.getElementById('popup_form');
+
+                            document.getElementById('form_title').innerText = 'Get class content?';
+                            document.getElementById('form_subtitle').innerHTML = `Select what content you would like to get from <span style="font-family: 'Google Medium'">${classes.find(course => course.id == document.getElementById('class_selector').value)?.name ?? 'All classes'}</span> and then submit.`;
+                            document.getElementById('form_content').classList.add('border');
+                            document.getElementById('form_content').innerHTML = `
+                                <div style="display: flex; align-items: center; user-select: none;">
+                                    <div class="material_checkbox" id="content_checkbox" checked></div>
+                                    Content
+                                </div>
+                                <div style="display: flex; align-items: center; user-select: none;">
+                                    <div class="material_checkbox" id="assignments_checkbox"></div>
+                                    Assignments (does nothing)
+                                </div>
+                            `;
+
+                            convertToMaterialCheckbox(document.getElementById('content_checkbox'));
+                            convertToMaterialCheckbox(document.getElementById('assignments_checkbox'));
+                            
+                            document.getElementById('form_submit').onclick = async function () {
+                                showSnackbar({ text: 'Attemping to get class content', duration: 10000 });
+                                document.getElementById('form_cancel').onclick();
+
+                                function unpack (arr, entry) {
+                                    for (const obj of arr) {
+                                        const construct = { };
+
+                                        construct.title = obj.Title;
+                                        construct.date = new Date(obj.LastModifiedDate).valueOf();
+                                        if (!obj.ActivityType) {
+                                            construct.type = entry ? 'M' : 'SM';
+                                            construct.description = obj.Description.Html;
+                                            construct.children = [];
+                                            for (var i = 0; i < (obj.Modules.length + obj.Topics.length); i++) {
+                                                construct.children.push(items.length + i + 1);
+                                            }
+                                        } else {
+                                            construct.url = obj.Url;
+                                            if (obj.ActivityType == 7) construct.type = 'GA';
+                                            else if (obj.ActivityType == 3) construct.type = 'BA';
+                                            else if (obj.ActivityType == 2) construct.type = 'L';
+                                            else if (obj.ActivityType == 1) construct.type = 'F';
+                                            else construct.type = 'U';
+                                        }
+
+                                        items.push(construct);
+
+                                        if (construct.children) {
+                                            unpack(obj.Modules);
+                                            unpack(obj.Topics);
+                                        }
+                                    }
+                                }
+
+                                if (document.getElementById('class_selector').value == 'all') {
+                                    var completed = 0;
+
+                                    function evalFinish () {
+                                        if (completed == classes.length) {
+                                            localStorage.setItem('content', JSON.stringify(content));
+                                            drawElements();
+                                            showSnackbar({ text: 'Successfully got class content!', icon: 'success', duration: 10000 });
+                                        }
+                                    }
+
+                                    for (const course of classes) {
+                                        const res = JSON.parse(await bsApiReq(`/d2l/api/le/unstable/${course.id}/content/toc?loadDescription=true`));
+                                        var items = [];
+
+                                        unpack(res.Modules, true);
+                                        content[course.id] = items;
+
+                                        completed++;
+                                        evalFinish();
+                                    }
+                                } else {
+                                    const classId = document.getElementById('class_selector').value;
+                                    const res = JSON.parse(await bsApiReq(`/d2l/api/le/unstable/${classId}/content/toc?loadDescription=true`));
+                                    var items = [];
+
+                                    unpack(res.Modules, true);
+                                    content[classId] = items;
+
+                                    localStorage.setItem('content', JSON.stringify(content));
+                                    drawElements();
+                                    showSnackbar({ text: 'Successfully got class content!', icon: 'success', duration: 10000 });
+                                }
+                            }
+
+                            formElement.style.opacity = 1;
+                            formElement.style.visibility = 'visible';
+                            formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
+                            document.getElementById('form_body').style.transform = 'scale(1)';
+                            document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
+                        }
+
+                        drawElements();
+                    }
+                } else if (path.startsWith('/class/')) {
+                    const course = classes.find(course => course.id == path.slice(7));
+                    id = 'menu_class_' + course.id;
+                    title = course.name;
+                    html = '';
+                    eqURL = 'https://brightspace.aacps.org/d2l/home/' + course.id;
+                } else {
+                    id = 'home_button';
+                    title = '<span style="color: #00b6ef; margin-right: 3px;">Power</span><span style="color: var(--color)">Classroom</span>';
+                    html = `
+                        <div style="display: flex; margin: 0 0 0 calc(1.5rem - 8px); padding: 1.5rem 0 0 0;">
+                            <div id="refresh_courses" class="material_text_button" style="color: rgb(26, 115, 232);">Refresh Courses</div>
+                        </div>
+                        <div id="classes_container"></div>
+                    `;
+
+                    callback = function () {
+                        convertToMaterialButton(document.getElementById('refresh_courses'));
+
+                        document.getElementById('refresh_courses').onclick = function () {
+                            showSnackbar({ text: 'Attempting to refresh class list', duration: 10000 });
+
+                            bsApiReq('/d2l/lp/courseSelector/InitPartial').then(res => {
+                                showSnackbar({ text: 'Class list refreshed successfully!', icon: 'success', duration: 10000 });
+
+                                const regex = /"\/d2l\/home\/(?<id>[0-9]*)\\">(?:(?!<\/a>)(?<name>[^<]*))*/gm;
+
+                                let m;
+
+                                classes = [];
+
+                                while ((m = regex.exec(res)) !== null) {
+                                    if (m.index === regex.lastIndex) {
+                                        regex.lastIndex++;
+                                    }
+                                    m.groups.name = m.groups.name.replace(' 3063 ', ' ').split(' - ')[0];
+                                    classes.push(m.groups);
+                                }
+
+                                classes.sort((a, b) => {
+                                    const A = a.name.toUpperCase();
+                                    const B = b.name.toUpperCase();
+                                    if (A < B) return -1;
+                                    if (A > B) return 1;
+                                    return 0;
+                                });
+
+                                localStorage.setItem('classes', JSON.stringify(classes));
+
+                                loadClasses(classes);
+                            });
+                        }
+
+                        loadClasses(classes);
+                    }
+                }
+
+                document.querySelector('#menu .active').classList.remove('active');
+                document.getElementById(id).classList.add('active');
+                document.getElementById('app_title').innerHTML = title;
+                document.title = document.getElementById('app_title').innerHTML.replace(/<.*?>|<\/.*?>/gm, '');
+                document.getElementById('content').innerHTML = html;
+                callback();
+            }
+
+            document.getElementById('home_button').onclick = function () {
+                menuButtonClick('/');
+            }
+
+            function getCourseColor (name) {
+                const colors = [
+                    'hsl(0, 100%, 60%)',
+                    'hsl(0, 100%, 40%)',
+                    'hsl(120, 80%, 55%)',
+                    'hsl(120, 100%, 35%)',
+                    'hsl(215, 80%, 60%)',
+                    'hsl(215, 100%, 40%)',
+                    'hsl(285, 100%, 70%)',
+                    'hsl(285, 100%, 50%)',
+                    'hsl(0, 0%, 50%)',
+                    'hsl(0, 0%, 30%)'
+                ]
+
+                var num = parseInt(name[0]);
+                
+                return colors[(isNaN(num) ? colors.length / 2 : num) * 2 - (name.includes('(A') ? 1 : 0) - 1];
+            }
+
+            function loadClasses (classes, menuOnly) {
+                if (classes.length || menuOnly) {
+                    document.getElementById('menu_classes').innerHTML = '';
+
+                    for (const course of classes) {
+                        const menuElement = document.createElement('div');
+
+                        menuElement.classList.add('button');
+                        menuElement.id = 'menu_class_' + course.id;
+                        menuElement.innerHTML = `<div style="padding: 4px; height: 24px; fill: var(--background); margin: 0 20px 0 4px; background: ${getCourseColor(course.name)}; border-radius: 100px;"><svg height="24" viewBox="0 96 960 960" width="24"><path d="M480 936 200 784V544L40 456l440-240 440 240v320h-80V500l-80 44v240L480 936Zm0-332 274-148-274-148-274 148 274 148Zm0 241 200-108V586L480 696 280 586v151l200 108Zm0-241Zm0 90Zm0 0Z"/></svg></div>${course.name}`;
+
+                        menuElement.onclick = function () {
+                            menuButtonClick('/class/' + course.id);
+                        }
+
+                        document.getElementById('menu_classes').appendChild(menuElement);
+                    }
+
+                    if (!menuOnly) {
+                        const element = document.getElementById('classes_container');
+
+                        element.removeAttribute('style');
+                        element.style.display = 'flex';
+                        element.style.flexWrap = 'wrap';
+                        element.style.padding = '1.5rem 0 0 1.5rem';
+
+                        element.innerHTML = '';
+
+                        for (const course of classes) {
+                            const classElement = document.createElement('div');
+
+                            classElement.classList.add('classes_class_item');
+
+                            const textElement = document.createElement('div');
+                            const blankElement = document.createElement('div');
+                            const buttonsElement = document.createElement('div');
+
+                            textElement.style.backgroundColor = getCourseColor(course.name);
+                            textElement.innerHTML = course.name;
+                            textElement.onclick = function () {
+                                menuButtonClick('/class/' + course.id);
+                            }
+                            
+                            const openButton = document.createElement('div');
+
+                            openButton.innerHTML = '<div></div><svg height="20" width="20" viewBox="0 0 18 18" mirror-in-rtl="true" preserveAspectRatio="xMidYMid meet" focusable="false"><path d="M12.1.6a.944.944 0 0 0 .2 1.04l1.352 1.353L10.28 6.37a.956.956 0 0 0 1.35 1.35l3.382-3.38 1.352 1.352a.944.944 0 0 0 1.04.2.958.958 0 0 0 .596-.875V.96a.964.964 0 0 0-.96-.96h-4.057a.958.958 0 0 0-.883.6z"></path><path d="M14 11v5a2.006 2.006 0 0 1-2 2H2a2.006 2.006 0 0 1-2-2V6a2.006 2.006 0 0 1 2-2h5a1 1 0 0 1 0 2H2v10h10v-5a1 1 0 0 1 2 0z"></path></svg>';
+                            openButton.onclick = function () {
+                                window.open('https://brightspace.aacps.org/d2l/home/' + course.id, '_blank');
+                            }
+
+                            buttonsElement.appendChild(openButton);
+
+                            classElement.appendChild(textElement);
+                            classElement.appendChild(blankElement);
+                            classElement.appendChild(buttonsElement);
+                            element.appendChild(classElement);
+                        }
+                    }
+                } else {
+                    const element = document.getElementById('classes_container');
+
+                    element.removeAttribute('style');
+                    element.style.display = 'flex';
+                    element.style.justifyContent = 'center';
+                    element.style.alignItems = 'center';
+                    element.style.fontFamily = 'Google Medium';
+                    element.style.fontSize = '1.5rem';
+                    element.style.flexGrow = '1';
+                    element.style.userSelect = 'none';
+
+                    element.innerHTML = 'No Classes';
+                }
+            }
+
+            document.getElementById('todo_button').onclick = function () {
+                menuButtonClick('/to-do');
+            }
+
+            document.getElementById('settings_button').onclick = function () {
+                menuButtonClick('/settings');
+            }
+
+            function menuButtonClick (path) {
+                if (window.location.origin == 'file://') {
+                    history.pushState({}, document.title, '?path=' + path);
+                } else {
+                    history.pushState({}, document.title, path);
+                }
+                loadContent(path);
+            }
+
+            document.getElementById('menu_button').onclick = function () {
+                const element = document.getElementById('menu');
+                element.style.transform = 'none';
+                element.style.boxShadow = '0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15)';
+                menuOpen = true;
+
+                document.body.onclick = function (event) {
+                    if (event.target.id != 'menu' && event.target.id != 'menu_button' && menuOpen) {
+                        menuOpen = false;
+                        const element = document.getElementById('menu');
+                        element.removeAttribute('style');
+                        void element.offsetLeft;
+                        element.style.transform = 'translateX(-100%)';
+                        element.style.animation = '.3s ease menu_animation';
+                    }
+                }
+            }
+
+            document.getElementById('popup_form').onmousedown = function (event) {
+                if (event == undefined || (event.target.id == 'popup_form' || (event.type == 'click' && event.target.id == 'form_cancel'))) {
+                    const element = document.getElementById('popup_form');
+                    element.removeAttribute('style');
+                    void element.offsetLeft;
+                    element.style.opacity = 0;
+                    element.style.visibility = 'hidden';
+                    element.style.animation = 'popup_pop 0.3s linear';
+                    element.style.transition = 'opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1) 0.15s';
+                    element.onanimationend = function () {
+                        document.getElementById('form_content').innerHTML = '';
+                        document.getElementById('form_content').classList.remove('border');
+                        document.getElementById('form_submit').innerHTML = 'Submit';
+                        convertToMaterialButton(document.getElementById('form_submit'));
+                        element.onanimationend = undefined;
+                    }
+                    document.getElementById('form_body').style.transform = 'scale(0.9)';
+                    document.getElementById('form_body').style.transition = 'transform .15s cubic-bezier(0.4, 0, 1, 1), -webkit-transform .15s cubic-bezier(0.4, 0, 1, 1)';
+                    document.getElementById('form_submit').onclick = function () {
+                        throw "Error: The submit button was not redefined!";
+                    }
+                }
+            }
+
+            document.getElementById('form_cancel').onclick = document.getElementById('popup_form').onmousedown;
+
+            document.onkeydown = function (event) {
+                if (document.getElementById('popup_form').style.opacity == 1) {
+                    if (event.key == 'Escape') {
+                        document.getElementById('form_cancel').onclick();
+                    } else if (event.key == 'Enter') {
+                        document.getElementById('form_submit').onclick();
+                    }
+                } else {
+                    if (event.key == 'Escape') {
+                        document.getElementById('embed_container').classList.remove('visible');
+                    }
+                }
+            }
+
+            document.getElementById('sign_in_button').onclick = function () {
+                const formElement = document.getElementById('popup_form');
+
+                const tokens = JSON.parse(localStorage.getItem('tokens') ?? '{}');
+
+                document.getElementById('form_title').innerText = 'Sign into services?';
+                document.getElementById('form_subtitle').innerText = 'Do you want to continue signing in? If so click continue.';
+                document.getElementById('form_content').classList.add('border');
+                document.getElementById('form_content').innerHTML = `
+                    <div style="display: flex; flex-direction: column; user-select: none;">
+                        <div style="display: flex; padding: 4px">
+                            Brightspace: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.brightspace ?? 0) - Date.now() < -10800000 ? 'Expired!' : 'Expires in ' + calcTimeDiff(Math.floor(Date.now() / 1000) - (10800 - Math.floor((Date.now() - tokens.brightspace) / 1000)))}</div>
+                        </div>
+                        <div style="display: flex; padding: 4px">
+                            Powerschool: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.powerschool ?? 0) - Date.now() < -1800000 ? 'Expired!' : 'Expires in ' + calcTimeDiff(Math.floor(Date.now() / 1000) - (1800 - Math.floor((Date.now() - tokens.powerschool) / 1000)))}</div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('form_submit').innerHTML = 'Continue';
+                convertToMaterialButton(document.getElementById('form_submit'));
+
+                document.getElementById('form_submit').onclick =  function () {
+                    document.getElementById('form_title').innerText = 'Sign into services?';
+                    document.getElementById('form_subtitle').innerText = 'Select which services you want to sign in to and enter your credentials.';
+                    document.getElementById('form_content').classList.add('border');
+                    document.getElementById('form_content').innerHTML = `
+                        <div style="display: flex; align-items: center; user-select: none;">
+                            <div class="material_checkbox" id="brightspace_signin_checkbox" checked></div>
+                            Sign into Brightspace
+                        </div>
+                        <div style="display: flex; align-items: center; user-select: none;">
+                            <div class="material_checkbox" id="powerschool_signin_checkbox"></div>
+                            Sign into Powerschool (does nothing)
+                        </div>
+                        <form autocomplete="on" id="auth_form" style="display: flex; flex-direction: column;" target="form_target">
+                            <div class="material_outlined_textbox" id="student_id_textbox" autocomplete="username">Student ID</div>
+                            <div class="material_outlined_textbox secure" id="password_textbox" autocomplete="current-password">Password</div>
+                        </form>
+                        <iframe name="form_target" src="" style="display: none"></iframe>
+                    `;
+
+                    document.getElementById('form_submit').innerHTML = 'Submit';
+                    convertToMaterialButton(document.getElementById('form_submit'));
+
+                    convertToMaterialCheckbox(document.getElementById('brightspace_signin_checkbox'));
+                    convertToMaterialCheckbox(document.getElementById('powerschool_signin_checkbox'));
+                    convertToMaterialTextbox(document.getElementById('student_id_textbox'));
+                    convertToMaterialTextbox(document.getElementById('password_textbox'));
+
+                    document.getElementById('form_submit').onclick = function () {
+                        showSnackbar({ text: 'Attempting to sign in', duration: 10000 });
+
+                        const data = JSON.stringify({
+                            brightspace: document.getElementById('brightspace_signin_checkbox').getAttribute('checked') != null,
+                            powerschool: document.getElementById('powerschool_signin_checkbox').getAttribute('checked') != null,
+                            id: document.getElementById('student_id_textbox').value,
+                            password: document.getElementById('password_textbox').value
+                        });
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', `${window.location.origin}/auth`, true);
+                        xhr.onreadystatechange = function() {
+                            if (this.readyState == 4 && this.status == 200) {
+                                const res = JSON.parse(this.responseText);
+
+                                if (res.powerschool) {
+                                    tokens.powerschool = Date.now();
+                                    localStorage.setItem('powerschool', res.powerschool);
+                                }
+                                if (res.brightspace) {
+                                    tokens.brightspace = Date.now();
+                                    localStorage.setItem('brightspace', res.brightspace);
+                                }
+
+                                localStorage.setItem('tokens', JSON.stringify(tokens));
+
+                                showSnackbar({ text: 'Successfully signed in!', icon: 'success', duration: 10000 });
+                            }
+                        };
+                        xhr.send(data);
+
+                        document.getElementById('form_cancel').onclick();
+                    }
+
+                    function poll () {
+                        if (document.getElementById('popup_form').style.opacity == 0) return;
+                        if (document.getElementById('student_id_textbox').matches(':autofill')) {
+                            const idElm = document.getElementById('student_id_textbox');
+                            const passwordElm = document.getElementById('password_textbox');
+
+                            const id = idElm.value;
+                            const password = document.getElementById('password_textbox').value;
+
+                            idElm.value = '';
+                            idElm.value = id;
+                            passwordElm.value = '';
+                            passwordElm.value = password;
+
+                            delete id;
+                            delete password;
+                        } else {
+                            setTimeout(poll, 100);
+                        }
+                    }
+
+                    setTimeout(poll, 100);
+
+                    formElement.style.opacity = 1;
+                    formElement.style.visibility = 'visible';
+                    formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
+                    document.getElementById('form_body').style.transform = 'scale(1)';
+                    document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
+                }
+
+                formElement.style.opacity = 1;
+                formElement.style.visibility = 'visible';
+                formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
+                document.getElementById('form_body').style.transform = 'scale(1)';
+                document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
+            }
+            
+            document.getElementById('equivalent_page_button').onclick = function () {
+                window.open(eqURL, '_blank');
+            }
+
+            function bsApiReq (endpoint) {
+                return new Promise((res, rej) => {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', `${window.location.origin}/api/bs` + endpoint, true);
+                    xhr.onreadystatechange = function() {
+                        if (this.readyState == 4 && this.status == 200) {
+                            const tokens = JSON.parse(localStorage.getItem('tokens'));
+                            tokens.brightspace = Date.now();
+                            localStorage.setItem('tokens', JSON.stringify(tokens));
+                            res(this.responseText);
+                        }
+                    };
+                    xhr.onloadend = function() {
+                        if(xhr.status == 403) showSnackbar({ icon: 'error', button: { text: 'Sign in', callback: document.getElementById('sign_in_button').onclick }, text: 'Error! Inavlid tokens, please sign in!', duration: 15000 });
+                    }
+                    xhr.send(localStorage.getItem('brightspace'));
+                });
+            }
+
+            function calcTimeDiff (date) {
+                var seconds = Math.floor((new Date().getTime() / 1000) - date),
+                interval = Math.floor(seconds / 31536000);
+
+                if (interval > 1) return interval + " years";
+
+                interval = Math.floor(seconds / 2592000);
+                if (interval > 1) return interval + " months";
+
+                interval = Math.floor(seconds / 86400);
+                if (interval >= 1) return interval + " days";
+
+                interval = Math.floor(seconds / 3600);
+                if (interval >= 1) return interval + " hours";
+
+                interval = Math.floor(seconds / 60);
+                if (interval > 1) return interval + " minutes";
+
+                return Math.floor(seconds) + " seconds";
+            }
+
+            function showSnackbar ({ text: label, icon: iconType = 'info', button: { text: btnLabel, color: color, callback: callback } = { text: undefined, color: 'rgb(26, 115, 232)', callback: () => {} }, duration: duration }) {
+                const element = document.createElement('div');
+                const icon = document.createElement('svg');
+                const text = document.createElement('div');
+                const button = document.createElement('div');
+
+                document.getElementById('snackbar_container').appendChild(element);
+
+                element.appendChild(icon);
+                switch (iconType) {
+                    case 'info':
+                        icon.outerHTML = '<svg fill="rgb(26, 115, 232)" height="24" viewBox="0 96 960 960" width="24"><path d="M480 776q17 0 28.5-11.5T520 736q0-17-11.5-28.5T480 696q-17 0-28.5 11.5T440 736q0 17 11.5 28.5T480 776Zm-40-160h80V376h-80v240Zm40 360q-83 0-156-31.5T197 859q-54-54-85.5-127T80 576q0-83 31.5-156T197 293q54-54 127-85.5T480 176q83 0 156 31.5T763 293q54 54 85.5 127T880 576q0 83-31.5 156T763 859q-54 54-127 85.5T480 976Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>';
+                        break;
+                    case 'success':
+                        icon.outerHTML = '<svg fill="rgb(50, 180, 50)" height="24" viewBox="0 96 960 960" width="24"><path d="m424 760 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197 859q-54-54-85.5-127T80 576q0-83 31.5-156T197 293q54-54 127-85.5T480 176q83 0 156 31.5T763 293q54 54 85.5 127T880 576q0 83-31.5 156T763 859q-54 54-127 85.5T480 976Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>';
+                        break;
+                    case 'warn':
+                        icon.outerHTML = '<svg fill="rgb(200, 200, 0)" height="24" viewBox="0 96 960 960" width="24"><path d="m40 936 440-760 440 760H40Zm138-80h604L480 336 178 856Zm302-40q17 0 28.5-11.5T520 776q0-17-11.5-28.5T480 736q-17 0-28.5 11.5T440 776q0 17 11.5 28.5T480 816Zm-40-120h80V496h-80v200Zm40-100Z"/></svg>';
+                        break;
+                    case 'error':
+                        icon.outerHTML = '<svg fill="rgb(225, 0, 0)" height="24" viewBox="0 96 960 960" width="24"><path d="m336 776 144-144 144 144 56-56-144-144 144-144-56-56-144 144-144-144-56 56 144 144-144 144 56 56Zm144 200q-83 0-156-31.5T197 859q-54-54-85.5-127T80 576q0-83 31.5-156T197 293q54-54 127-85.5T480 176q83 0 156 31.5T763 293q54 54 85.5 127T880 576q0 83-31.5 156T763 859q-54 54-127 85.5T480 976Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>';
+                        break;
+                    default:
+                        icon.remove();
+                        break;
+                }
+
+                text.innerHTML = label;
+                element.appendChild(text);
+
+                if (btnLabel != undefined) {
+                    button.innerHTML = btnLabel;
+                    button.style.color = color ?? 'rgb(26, 115, 232)';
+                    button.onclick = callback;
+                    button.classList.add('material_text_button');
+                    element.appendChild(button);
+                    convertToMaterialButton(button);
+                }
+
+                setTimeout(() => {
+                    element.classList.add('decay');
+                    setTimeout(() => {
+                        element.remove();
+                    }, 250);
+                }, duration);
+            }
+
+            convertToMaterialButton(document.getElementById('theme_button'));
+            convertToMaterialButton(document.getElementById('equivalent_page_button'));
+            convertToMaterialButton(document.getElementById('sign_in_button'));
+            convertToMaterialButton(document.getElementById('form_cancel'));
+            convertToMaterialButton(document.getElementById('form_submit'));
+
+            function convertToMaterialSelect (element) {
+                const displayElement = document.createElement('div');
+                const selectElement = document.createElement('div');
+
+                selectElement.innerHTML = element.innerHTML;
+                element.innerHTML = '';
+
+                const displayText = document.createElement('div');
+                const displaySvg = document.createElement('svg');
+
+                displayText.innerHTML = selectElement.children[0].innerHTML;
+
+                displayElement.appendChild(displayText);
+                displayElement.appendChild(displaySvg);
+
+                displaySvg.outerHTML = '<svg viewBox="7 10 10 5" focusable="false"><polygon stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon><polygon stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon></svg>';
+
+                selectElement.children[0].classList.add('active');
+                element.value = selectElement.children[0].getAttribute('value');
+
+                for (const child of selectElement.children) {
+                    const splashChild = document.createElement('div');
+                    const text = document.createElement('div');
+
+                    text.innerHTML = child.innerHTML;
+                    child.innerHTML = '';
+
+                    splashChild.style.width = element.clientWidth + 'px';
+                    splashChild.style.height = element.clientWidth + 'px';
+
+                    child.onmousedown = function (event) {
+                        if (child.classList.contains('active')) {
+                            splashChild.style.backgroundColor = 'rgba(26, 115, 232, 0.125)';
+                        } else {
+                            splashChild.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
+                        }
+                        splashChild.style.left = event.offsetX + 'px';
+                        splashChild.style.top = event.offsetY + 'px';
+                        splashChild.style.opacity = 1;
+                        splashChild.style.transform = 'translate(-50%, -50%) scale(2)';
+                        splashChild.style.transition = 'transform .25s linear, opacity .1s linear, -webkit-transform .25s linear';
+                    }
+
+                    child.onmouseup = function (event) {
+                        splashChild.style.transform = 'translate(-50%, -50%) scale(0)';
+                        splashChild.style.transition = 'opacity .1s ease, visibility 0s ease .1s, transform 0s ease .1s, -webkit-transform 0s ease .1s';
+                        splashChild.style.opacity = 0;
+                    }
+
+                    child.onmouseleave = child.onmouseup;
+
+                    child.appendChild(splashChild);
+                    child.appendChild(text);
+
+                    child.onclick = function () {
+                        selectElement.querySelector('.active')?.classList?.remove('active');
+                        child.classList.add('active');
+                        displayText.innerHTML = text.innerHTML;
+                        element.value = child.getAttribute('value');
+                        element.onchange(element.value);
+                    }
+                };
+
+                displayElement.onclick = function () {
+                    element.classList.add('active');
+                    selectElement.style.display = 'flex';
+                    setTimeout(() => {
+                        if (selectElement.style.display == 'flex') document.body.onclick = function (event) {
+                            element.classList.remove('active');
+                            selectElement.style.display = 'none';
+                            document.body.onclick = function () {};
+                        }
+                    }, 0);
+                }
+
+                element.appendChild(displayElement);
+                element.appendChild(selectElement);
+            }
+
+            function convertToMaterialTextbox (element) {
+                if (element.classList.contains('material_outlined_textbox')) {
+                    const input = document.createElement('input');
+                    const div = document.createElement('div');
+
+                    input.id = element.id;
+                    element.removeAttribute('id');
+
+                    div.innerHTML = element.innerHTML;
+                    element.innerHTML = '';
+
+                    input.setAttribute('type', element.classList.contains('secure') ? 'password' : 'text');
+                    input.setAttribute('required', '');
+
+                    element.appendChild(input);
+                    element.appendChild(div);
+                } else if (element.classList.contains('material_filled_textbox')) {
+                    const input = document.createElement('input');
+                    const label = document.createElement('div');
+                    const splashContainer = document.createElement('div');
+                    const splash = document.createElement('div');
+
+                    input.id = element.id;
+                    element.removeAttribute('id');
+
+                    label.innerHTML = element.innerHTML;
+                    element.innerHTML = '';
+
+                    input.setAttribute('type', 'text');
+                    input.setAttribute('required', '');
+
+                    input.onclick = function (event) {
+                        splash.style.left = event.offsetX + 'px';
+                        splash.style.width = '200%';
+                        splash.style.transform = 'translateX(-50%)';
+                        splash.style.opacity = '1';
+                        splash.style.transition = 'width .25s linear';
+                    }
+
+                    input.onfocus = input.onclick;
+
+                    input.onblur = function () {
+                        if (!element.querySelector('input:focus')) splash.removeAttribute('style');
+                    }
+
+                    splashContainer.appendChild(splash);
+
+                    element.appendChild(input);
+                    element.appendChild(label);
+                    element.appendChild(splashContainer);
+                }
+            }
+
+            function convertToMaterialCheckbox (element) {
+                const child = document.createElement('div');
+
+                element.innerHTML = '<svg viewBox="0 0 24 24"><path></path></svg>';
+
+                element.onclick = function () {
+                    if (element.getAttribute('checked') != null) {
+                        element.removeAttribute('checked');
+                    } else {
+                        element.setAttribute('checked', '');
+                    }
+                }
+
+                element.onmousedown = function (event) {
+                    child.style.opacity = 1;
+                    child.style.transform = 'scale(1)';
+                    child.style.transition = 'transform .2s cubic-bezier(0, 0, 0.2, 1), opacity 0s, -webkit-transform .2s cubic-bezier(0, 0, 0.2, 1)';
+                }
+
+                element.onmouseup = function (event) {
+                    child.style.transform = 'scale(0.5)';
+                    child.style.transition = 'opacity .2s ease, visibility 0s ease .2s, transform 0s ease .2s, -webkit-transform 0s ease .2s';
+                    child.style.opacity = 0;
+                }
+
+                element.onmouseleave = element.onmouseup;
+
+                element.prepend(child);
+            }
+
+            function convertToMaterialButton (element) {
+                const child = document.createElement('div');
+                const max = Math.max(element.clientHeight, element.clientWidth) + 'px';
+                child.style.width = max;
+                child.style.height = max;
+
+                element.onmousedown = function (event) {
+                    child.style.left = event.offsetX + 'px';
+                    child.style.top = event.offsetY + 'px';
+                    child.style.opacity = 1;
+                    child.style.transform = 'translate(-50%, -50%) scale(2.5)';
+                    child.style.transition = 'transform .5s cubic-bezier(0, 0, 0.2, 1), opacity .2s cubic-bezier(0, 0, 0.2, 1), -webkit-transform .5s cubic-bezier(0, 0, 0.2, 1)';
+                }
+
+                element.onmouseup = function (event) {
+                    child.style.transform = 'translate(-50%, -50%) scale(0)';
+                    child.style.transition = 'opacity .2s ease, visibility 0s ease .2s, transform 0s ease .2s, -webkit-transform 0s ease .2s';
+                    child.style.opacity = 0;
+                }
+
+                element.onmouseleave = element.onmouseup;
+                
+                if (element.classList.contains('material_outlined_button')) {
+                    child.style.backgroundImage = 'radial-gradient(circle farthest-side, rgba(66, 133, 244, .16), rgba(66, 133, 244, .16) 80%, rgba(66, 133, 244, 0) 100%)';
+                } else if (element.classList.contains('material_filled_button')) {
+                    child.style.backgroundImage = 'radial-gradient(circle farthest-side, rgba(255, 255, 255, .322), rgba(255, 255, 255, .322) 80%, rgba(255, 255, 255, 0) 100%)';
+                } else if (element.classList.contains('material_text_button')) {
+                    const backgroundChild = document.createElement('div');
+                    backgroundChild.classList.add('background');
+
+                    child.style.backgroundImage = 'radial-gradient(circle farthest-side, currentColor, currentColor 80%, transparent 100%)';
+                    child.style.filter = 'opacity(0.16)';
+
+                    element.appendChild(backgroundChild);
+                }
+
+                element.appendChild(child);
+            }
+        </script>
+    </body>
+</html>
