@@ -1,2 +1,2 @@
-git_ignore/**
-node_modules/**
+git_ignore
+node_modules

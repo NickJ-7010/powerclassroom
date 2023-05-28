@@ -1848,7 +1848,7 @@
                         });
 
                         var xhr = new XMLHttpRequest();
-                        xhr.open('POST', 'https://powerclassroom-auth.onrender.com', true);
+                        xhr.open('POST', 'https://powerclassroom-auth.onrender.com/auth', true);
                         xhr.onreadystatechange = function() {
                             if (this.readyState == 4 && this.status == 200) {
                                 const res = JSON.parse(this.responseText);
@@ -1916,7 +1916,7 @@
             function bsApiReq (endpoint) {
                 return new Promise((res, rej) => {
                     var xhr = new XMLHttpRequest();
-                    xhr.open('POST', 'https://powerclassroom.glitch.me' + endpoint, true);
+                    xhr.open('POST', 'https://powerclassroom.glitch.me/api/bs' + endpoint, true);
                     xhr.onreadystatechange = function() {
                         if (this.readyState == 4 && this.status == 200) {
                             const tokens = JSON.parse(localStorage.getItem('tokens'));
