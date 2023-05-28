@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const https = require('https');
 const http = require('http');
+const fs = require('fs');
 
 const mimeTypes = {
     "html": "text/html",
