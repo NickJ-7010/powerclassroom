@@ -85,6 +85,10 @@ http.createServer((req, res) => {
                 }
             });
         }
+    } else if (req.url == '/save-auth') {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/plain');
+        res.end('Pre-request completed.');
     } else if (req.url == '/auth') {
         if (req.method != 'POST') {
             res.statusCode = 400;
