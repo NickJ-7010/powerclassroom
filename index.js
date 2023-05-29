@@ -5,7 +5,11 @@ const http = require('http');
 http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
 
-    if (req.url == '/auth') {
+    if (req.url == '/save-auth') {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/plain');
+        res.end('Pre-request completed.');
+    } else if (req.url == '/auth') {
         if (req.method != 'POST') {
             res.statusCode = 400;
             res.setHeader('Content-Type', 'text/plain');
