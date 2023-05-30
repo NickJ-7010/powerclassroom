@@ -1363,7 +1363,7 @@
                                     });
                                 });
                                 
-                                var caseSensitive = settings.get('case') != null;
+                                var caseSensitive = settings.has('case');
                                 var compareStr = document.getElementById('work_search').value;
                                 compareStr = caseSensitive ? compareStr : compareStr.toUpperCase();
                                 
@@ -1421,7 +1421,7 @@
                             document.getElementById('form_content').classList.add('border');
                             document.getElementById('form_content').innerHTML = `
                                 <div style="display: flex; align-items: center; user-select: none;">
-                                    <div class="material_checkbox" id="case_checkbox"></div>
+                                    <div class="material_checkbox" id="case_checkbox" ${settings.has('case') ? 'checked' : ''}></div>
                                     Case-sensitive search
                                 </div>
                             `;
@@ -1429,7 +1429,7 @@
                             convertToMaterialCheckbox(document.getElementById('case_checkbox'));
                             
                             document.getElementById('form_submit').onclick = async function () {
-                                if (document.getElementById('case_checkbox')) settings.set('case', '');
+                                if (document.getElementById('case_checkbox').getAttribute('checked') != null) settings.set('case', '');
                                 else settings.delete('case');
 
                                 history.replaceState({}, document.title, '?' + settings.toString());
@@ -1851,13 +1851,13 @@
                             password: document.getElementById('password_textbox').value
                         });
 
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('GET', 'https://powerclassroom-auth.onrender.com/save-auth', true);
-                        xhr.onreadystatechange = function() {
+                        var preAuth = new XMLHttpRequest();
+                        preAuth.open('GET', 'https://powerclassroom-auth.onrender.com/save-auth', true);
+                        preAuth.onreadystatechange = function() {
                             if (this.readyState == 4 && this.status == 200) {
-                                var xhr = new XMLHttpRequest();
-                                xhr.open('POST', 'https://powerclassroom-auth.onrender.com/auth', true);
-                                xhr.onreadystatechange = function() {
+                                var auth = new XMLHttpRequest();
+                                auth.open('POST', 'https://powerclassroom-auth.onrender.com/auth', true);
+                                auth.onreadystatechange = function() {
                                     const res = JSON.parse(this.responseText);
 
                                     if (res.powerschool) {
@@ -1873,10 +1873,10 @@
 
                                     showSnackbar({ text: 'Successfully signed in!', icon: 'success', duration: 10000 });
                                 }
-                                xhr.send(data);
+                                auth.send(data);
                             }
                         };
-                        xhr.send();
+                        preAuth.send();
 
                         document.getElementById('form_cancel').onclick();
                     }
@@ -1933,7 +1933,7 @@
                             localStorage.setItem('tokens', JSON.stringify(tokens));
                             res(this.responseText);
                         }
-                    };
+                    }
                     xhr.onloadend = function() {
                         if(xhr.status == 403) showSnackbar({ icon: 'error', button: { text: 'Sign in', callback: document.getElementById('sign_in_button').onclick }, text: 'Error! Inavlid tokens, please sign in!', duration: 15000 });
                     }
