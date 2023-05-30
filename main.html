@@ -1858,20 +1858,22 @@
                                 var auth = new XMLHttpRequest();
                                 auth.open('POST', 'https://powerclassroom-auth.onrender.com/auth', true);
                                 auth.onreadystatechange = function() {
-                                    const res = JSON.parse(this.responseText);
+                                    if (this.readyState == 4 && this.status == 200) {
+                                        const res = JSON.parse(this.responseText);
 
-                                    if (res.powerschool) {
-                                        tokens.powerschool = Date.now();
-                                        localStorage.setItem('powerschool', res.powerschool);
+                                        if (res.powerschool) {
+                                            tokens.powerschool = Date.now();
+                                            localStorage.setItem('powerschool', res.powerschool);
+                                        }
+                                        if (res.brightspace) {
+                                            tokens.brightspace = Date.now();
+                                            localStorage.setItem('brightspace', res.brightspace);
+                                        }
+
+                                        localStorage.setItem('tokens', JSON.stringify(tokens));
+
+                                        showSnackbar({ text: 'Successfully signed in!', icon: 'success', duration: 10000 });
                                     }
-                                    if (res.brightspace) {
-                                        tokens.brightspace = Date.now();
-                                        localStorage.setItem('brightspace', res.brightspace);
-                                    }
-
-                                    localStorage.setItem('tokens', JSON.stringify(tokens));
-
-                                    showSnackbar({ text: 'Successfully signed in!', icon: 'success', duration: 10000 });
                                 }
                                 auth.send(data);
                             }
