@@ -4,17 +4,20 @@
     <head>
         <title>PowerClassroom</title>
         <meta charset="utf-8">
-        <meta name="viewport">
-        <link rel="shortcut icon" href="/assets/favicon.ico" />
+        <meta name="viewport" content="width=device-width">
+        <meta name="description" content="A brightspace web app with a google classroom themed UI.">
+        <meta name="theme-color" content="#ffffff"/>
+        <link rel="manifest" href="manifest.json" />
+        <link rel="shortcut icon" href="/assets/static/favicon.ico" />
         <style>
             @font-face {
                 font-family: 'Google';
-                src: url('/assets/Google Sans.woff2');
+                src: url('/assets/static/Google Sans.woff2');
             }
 
             @font-face {
                 font-family: 'Google Medium';
-                src: url('/assets/Google Sans Medium.woff2');
+                src: url('/assets/static/Google Sans Medium.woff2');
             }
             
             body {
@@ -1084,6 +1087,7 @@
             </div>
             <div style="justify-content: end;">
                 <div id="theme_button" class="material_outlined_button">Dark mode</div>
+                <div id="brightspace_sign_in_button" class="material_outlined_button">Brightspace login</div>
                 <div id="equivalent_page_button" class="material_outlined_button">View equivalent page</div>
                 <div id="sign_in_button" class="material_filled_button">Sign in</div>
             </div>
@@ -1421,7 +1425,7 @@
                             document.getElementById('form_content').classList.add('border');
                             document.getElementById('form_content').innerHTML = `
                                 <div style="display: flex; align-items: center; user-select: none;">
-                                    <div class="material_checkbox" id="case_checkbox"></div>
+                                    <div class="material_checkbox" id="case_checkbox" ${settings.has('case') ? 'checked' : ''}></div>
                                     Case-sensitive search
                                 </div>
                             `;
@@ -1429,7 +1433,7 @@
                             convertToMaterialCheckbox(document.getElementById('case_checkbox'));
                             
                             document.getElementById('form_submit').onclick = async function () {
-                                if (document.getElementById('case_checkbox')) settings.set('case', '');
+                                if (document.getElementById('case_checkbox').getAttribute('checked') != null) settings.set('case', '');
                                 else settings.delete('case');
 
                                 history.replaceState({}, document.title, '?' + settings.toString());
@@ -1851,32 +1855,34 @@
                             password: document.getElementById('password_textbox').value
                         });
 
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('GET', 'https://powerclassroom-auth.onrender.com/save-auth', true);
-                        xhr.onreadystatechange = function() {
+                        var preAuth = new XMLHttpRequest();
+                        preAuth.open('GET', 'https://powerclassroom-auth.onrender.com/save-auth', true);
+                        preAuth.onreadystatechange = function () {
                             if (this.readyState == 4 && this.status == 200) {
-                                var xhr = new XMLHttpRequest();
-                                xhr.open('POST', 'https://powerclassroom-auth.onrender.com/auth', true);
-                                xhr.onreadystatechange = function() {
-                                    const res = JSON.parse(this.responseText);
+                                var auth = new XMLHttpRequest();
+                                auth.open('POST', 'https://powerclassroom-auth.onrender.com/auth', true);
+                                auth.onreadystatechange = function () {
+                                    if (this.readyState == 4 && this.status == 200) {
+                                        const res = JSON.parse(this.responseText);
 
-                                    if (res.powerschool) {
-                                        tokens.powerschool = Date.now();
-                                        localStorage.setItem('powerschool', res.powerschool);
+                                        if (res.powerschool) {
+                                            tokens.powerschool = Date.now();
+                                            localStorage.setItem('powerschool', res.powerschool);
+                                        }
+                                        if (res.brightspace) {
+                                            tokens.brightspace = Date.now();
+                                            localStorage.setItem('brightspace', res.brightspace);
+                                        }
+
+                                        localStorage.setItem('tokens', JSON.stringify(tokens));
+
+                                        showSnackbar({ text: 'Successfully signed in!', icon: 'success', duration: 10000 });
                                     }
-                                    if (res.brightspace) {
-                                        tokens.brightspace = Date.now();
-                                        localStorage.setItem('brightspace', res.brightspace);
-                                    }
-
-                                    localStorage.setItem('tokens', JSON.stringify(tokens));
-
-                                    showSnackbar({ text: 'Successfully signed in!', icon: 'success', duration: 10000 });
                                 }
-                                xhr.send(data);
+                                auth.send(data);
                             }
-                        };
-                        xhr.send();
+                        }
+                        preAuth.send();
 
                         document.getElementById('form_cancel').onclick();
                     }
@@ -1903,21 +1909,19 @@
                     }
 
                     setTimeout(poll, 100);
-
-                    formElement.style.opacity = 1;
-                    formElement.style.visibility = 'visible';
-                    formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
-                    document.getElementById('form_body').style.transform = 'scale(1)';
-                    document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
                 }
 
                 formElement.style.opacity = 1;
                 formElement.style.visibility = 'visible';
                 formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
                 document.getElementById('form_body').style.transform = 'scale(1)';
-                document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
+                document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1), -webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
             }
             
+            document.getElementById('brightspace_sign_in_button').onclick = function () {
+                window.open('https://brightspace.aacps.org/d2l/login', '_blank');
+            }
+
             document.getElementById('equivalent_page_button').onclick = function () {
                 window.open(eqURL, '_blank');
             }
@@ -1933,7 +1937,7 @@
                             localStorage.setItem('tokens', JSON.stringify(tokens));
                             res(this.responseText);
                         }
-                    };
+                    }
                     xhr.onloadend = function() {
                         if(xhr.status == 403) showSnackbar({ icon: 'error', button: { text: 'Sign in', callback: document.getElementById('sign_in_button').onclick }, text: 'Error! Inavlid tokens, please sign in!', duration: 15000 });
                     }
@@ -2012,6 +2016,7 @@
             }
 
             convertToMaterialButton(document.getElementById('theme_button'));
+            convertToMaterialButton(document.getElementById('brightspace_sign_in_button'));
             convertToMaterialButton(document.getElementById('equivalent_page_button'));
             convertToMaterialButton(document.getElementById('sign_in_button'));
             convertToMaterialButton(document.getElementById('form_cancel'));
