@@ -1367,7 +1367,7 @@
                                     });
                                 });
                                 
-                                var caseSensitive = settings.get('case') != null;
+                                var caseSensitive = settings.has('case');
                                 var compareStr = document.getElementById('work_search').value;
                                 compareStr = caseSensitive ? compareStr : compareStr.toUpperCase();
                                 
