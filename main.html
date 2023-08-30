@@ -7,8 +7,8 @@
         <meta name="viewport" content="width=device-width">
         <meta name="description" content="A brightspace web app with a google classroom themed UI.">
         <meta name="theme-color" content="#ffffff"/>
-        <link rel="manifest" href="manifest.json" />
-        <link rel="shortcut icon" href="/assets/static/favicon.ico" />
+        <link rel="manifest" href="manifest.json"/>
+        <link rel="shortcut icon" href="/assets/static/favicon.ico"/>
         <style>
             @font-face {
                 font-family: 'Google';
@@ -1143,8 +1143,8 @@
         <script>
             var darkMode = localStorage.getItem('darkMode');
             var eqURL = 'https://brightspace.aacps.org/d2l/home/7684';
-            var classes = JSON.parse(localStorage.getItem('classes') ?? '[]');
-            var content = JSON.parse(localStorage.getItem('content') ?? '{}');
+            var classes = parseClasses(localStorage.getItem('classes'), true);
+            var content = parseContent(localStorage.getItem('content'), true);
             var menuOpen = false;
 
             console.log('%cWARNING!\n%cUsing this console may allow attackers to impersonate you and steal your information and accounts using an attack called Self-XSS.\nDo not enter or paste code that you did not write or do not understand.', 'background: yellow; color: red; font-weight: bolder; font-size: 50px', 'font-size: 25px');
@@ -1521,7 +1521,7 @@
 
                                     function evalFinish () {
                                         if (completed == classes.length) {
-                                            localStorage.setItem('content', JSON.stringify(content));
+                                            localStorage.setItem('content', parseContent(content));
                                             drawElements();
                                             showSnackbar({ text: 'Successfully got class content!', icon: 'success', duration: 10000 });
                                         }
@@ -1545,7 +1545,7 @@
                                     unpack(res.Modules, true);
                                     content[classId] = items;
 
-                                    localStorage.setItem('content', JSON.stringify(content));
+                                    localStorage.setItem('content', parseContent(content));
                                     drawElements();
                                     showSnackbar({ text: 'Successfully got class content!', icon: 'success', duration: 10000 });
                                 }
@@ -1607,7 +1607,7 @@
                                     return 0;
                                 });
 
-                                localStorage.setItem('classes', JSON.stringify(classes));
+                                localStorage.setItem('classes', parseClasses(classes));
 
                                 loadClasses(classes);
                             });
@@ -1926,6 +1926,79 @@
 
             document.getElementById('equivalent_page_button').onclick = function () {
                 window.open(eqURL, '_blank');
+            }
+
+            function parseClasses (data, toJSON) {
+                const CHAR = String.fromCharCode(0xf000);
+                if (toJSON) {
+                    return data.length ? data.split(CHAR).map(str => str.match(/(?<id>[0-9]*):(?<name>.*)/).groups) : [];
+                } else {
+                    return data.map(obj => `${obj.id}:${obj.name}`).join(CHAR);
+                }
+            }
+
+            function parseContent (data, toJSON) {
+                const CHAR = String.fromCharCode(0xf000);
+                const CHAR2 = String.fromCharCode(0xf001);
+                if (toJSON) {
+                    const obj = { };
+                    const classAmounts = { };
+                    const arr = data.split(CHAR);
+                    var i = 0;
+                    for (const str of arr.shift().split(',')) {
+                        const values = str.split(':');
+                        obj[values[0]] = [];
+                        classAmounts[values[0]] = parseInt(values[1]);
+                    }
+
+                    for (const [id, amount] of Object.entries(classAmounts)) {
+                        for (const str of arr.slice(i, i + amount)) {
+                            const construct = { };
+                            for (const entry of str.split(CHAR2)) {
+                                const short = entry.slice(0, 1);
+                                const value = entry.slice(1);
+                                var key = '';
+                                if (short == 'T') key = 'title';
+                                else if (short == 'D') key = 'date';
+                                else if (short == 'A') key = 'type';
+                                else if (short == 'S') key = 'description';
+                                else if (short == 'C') key = 'children';
+                                else if (short == 'U') key = 'url';
+                                construct[key] = short == 'C' ? value.split(',').map(int => parseInt(int)).filter(int => !isNaN(int)) : short == 'D' ? parseInt(value) : value;
+                            }
+                            obj[id].push(construct);
+                        }
+                        i += amount;
+                    }
+                    return obj;
+                } else {
+                    var prefix = [];
+                    for (const [id, arr] of Object.entries(data)) {
+                        if (id) prefix.push(`${id}:${arr.length}`);
+                    }
+                    prefix = prefix.join(',');
+
+                    var arr = [];
+                    for (const a of Object.values(data)) {
+                        for (const obj of a) {
+                            var values = [];
+                            for (const [key, value] of Object.entries(obj)) {
+                                var short = '';
+                                if (key == 'title') short = 'T';
+                                else if (key == 'date') short = 'D';
+                                else if (key == 'type') short = 'A';
+                                else if (key == 'description') short = 'S';
+                                else if (key == 'children') short = 'C';
+                                else if (key == 'url') short = 'U';
+                                values.push(short + value);
+                            }
+                            arr.push(values.join(CHAR2));
+                        }
+                    }
+                    arr = arr.join(CHAR);
+
+                    return prefix + CHAR + arr;
+                }
             }
 
             function bsApiReq (endpoint) {
