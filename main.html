@@ -36,11 +36,14 @@
 
             :root[data-applied-mode="true"] {
                 color-scheme: dark;
-                --background: #000000;
+                --background: #121212;
                 --color: rgb(165, 169, 174);
                 --seperator: rgb(71, 69, 65);
                 --material-outlined-button-hover: rgb(63, 76, 93);
                 --rich-color: rgba(255, 255, 255, 0.87);
+                --secondary-background: #161616;
+                --todo-shadow-1: 0 1px 2px 0 rgba(0, 0, 0, .4);
+                --todo-shadow-2: 0 2px 6px 2px rgba(0, 0, 0, .25);
             }
 
             :root[data-applied-mode="false"] {
@@ -50,6 +53,9 @@
                 --seperator: rgb(218, 220, 224);
                 --material-outlined-button-hover: rgb(210, 227, 252);
                 --rich-color: rgba(0, 0, 0, 0.87);
+                --secondary-background: #ffffff;
+                --todo-shadow-1: 0 1px 2px 0 rgba(120, 124, 127, .4);
+                --todo-shadow-2: 0 2px 6px 2px rgba(120, 124, 127, .25);
             }
 
             #top_bar {
@@ -221,7 +227,7 @@
                 height: calc(100% - 16px);
                 width: 19rem;
                 border-right: 1px solid var(--seperator);
-                background-color: var(--background);
+                background-color: var(--secondary-background);
                 transform: translateX(-100%);
                 transition: transform .3s ease;
                 color: var(--color);
@@ -231,10 +237,10 @@
 
             @keyframes menu_animation {
                 0% {
-                    box-shadow: 0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15);
+                    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, .3), 0 8px 12px 6px rgba(0, 0, 0, .15);
                 }
                 100% {
-                    box-shadow: 0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15);
+                    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, .3), 0 8px 12px 6px rgba(0, 0, 0, .15);
                 }
             }
 
@@ -248,7 +254,7 @@
                 width: 100vw;
                 align-items: center;
                 justify-content: center;
-                background-color: rgba(32, 32, 32, 0.5);
+                background-color: rgba(0, 0, 0, 0.5);
                 transition: opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
@@ -263,7 +269,7 @@
 
             #form_body {
                 color: var(--color);
-                box-shadow: 0 1px 3px 0 rgba(30, 34, 37, .3), 0 4px 8px 3px rgba(30, 34, 37, .15);
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .3), 0 4px 8px 3px rgba(0, 0, 0, .15);
                 max-width: 24em;
                 background-color: var(--background);
                 border-radius: 8px;
@@ -590,11 +596,11 @@
             }
 
             #menu .button:hover {
-                background-color: rgba(32, 33, 36, .04);
+                background-color: rgba(255, 255, 255, .04);
             }
 
             #menu .button:active {
-                background-color: rgba(26, 115, 232, .06);
+                background-color: rgba(26, 115, 232, .09);
             }
 
             #menu .button.active {
@@ -777,9 +783,9 @@
                 top: 2px;
                 z-index: 1;
                 display: none;
-                background: var(--background);
+                background: var(--secondary-background);
                 flex-direction: column;
-                box-shadow: 0 3px 5px -1px rgba(90, 94, 97, .2), 0 6px 10px 0 rgba(90, 94, 97, .14), 0 1px 18px 0 rgba(90, 94, 97, .12);
+                box-shadow: 0 3px 5px -1px rgba(0, 0, 0, .2), 0 6px 10px 0 rgba(0, 0, 0, .14), 0 1px 18px 0 rgba(0, 0, 0, .12);
                 border-radius: 4px;
                 padding: 8px 0;
             }
@@ -903,7 +909,7 @@
                 transition: max-height .25s ease-out, visibility 0s linear .25s;
                 overflow: hidden;
                 border-left: 2px solid rgb(26, 115, 232);
-                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4) inset, 0 2px 6px 2px rgba(120, 124, 128, .25) inset;
+                box-shadow: var(--todo-shadow-1) inset, var(--todo-shadow-2) inset;
             }
 
             #todo_content .container > div {
@@ -1003,16 +1009,18 @@
             }
 
             #todo_content .child > .header:hover {
-                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4), 0 2px 6px 2px rgba(120, 124, 127, .25);
+                box-shadow: var(--todo-shadow-1), var(--todo-shadow-2);
+                background: var(--secondary-background);
             }
 
             #todo_content .child.active > .header:hover {
-                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4), 0 2px 6px 2px rgba(120, 124, 128, .25);
-                background: var(--background);
+                box-shadow: var(--todo-shadow-1), var(--todo-shadow-2);
+                background: var(--secondary-background);
             }
 
             #todo_content .child > .header.clickable:active {
-                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4) inset, 0 2px 6px 2px rgba(120, 124, 128, .25) inset;
+                box-shadow: var(--todo-shadow-1) inset, var(--todo-shadow-2) inset;
+                background: var(--background);
             }
 
             #todo_content .child > .header.clickable:active > .icon {
@@ -1742,7 +1750,7 @@
             document.getElementById('menu_button').onclick = function () {
                 const element = document.getElementById('menu');
                 element.style.transform = 'none';
-                element.style.boxShadow = '0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15)';
+                element.style.boxShadow = '0 4px 4px 0 rgba(0, 0, 0, .3), 0 8px 12px 6px rgba(0, 0, 0, .15)';
                 menuOpen = true;
 
                 document.body.onclick = function (event) {
@@ -2128,13 +2136,14 @@
                     splashChild.style.height = element.clientWidth + 'px';
 
                     child.onmousedown = function (event) {
+                        const rect = child.getBoundingClientRect();
                         if (child.classList.contains('active')) {
                             splashChild.style.backgroundColor = 'rgba(26, 115, 232, 0.125)';
                         } else {
                             splashChild.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
                         }
-                        splashChild.style.left = event.offsetX + 'px';
-                        splashChild.style.top = event.offsetY + 'px';
+                        splashChild.style.left = event.clientX - Math.round(rect.left) + 'px';
+                        splashChild.style.top = event.clientY - Math.floor(rect.top) + 'px';
                         splashChild.style.opacity = 1;
                         splashChild.style.transform = 'translate(-50%, -50%) scale(2)';
                         splashChild.style.transition = 'transform .25s linear, opacity .1s linear, -webkit-transform .25s linear';
@@ -2208,7 +2217,8 @@
                     input.setAttribute('required', '');
 
                     input.onclick = function (event) {
-                        splash.style.left = event.offsetX + 'px';
+                        const rect = element.getBoundingClientRect();
+                        splash.style.left = event.clientX - Math.round(rect.left) + 'px';
                         splash.style.width = '200%';
                         splash.style.transform = 'translateX(-50%)';
                         splash.style.opacity = '1';
@@ -2266,8 +2276,9 @@
                 child.style.height = max;
 
                 element.onmousedown = function (event) {
-                    child.style.left = event.offsetX + 'px';
-                    child.style.top = event.offsetY + 'px';
+                    const rect = element.getBoundingClientRect();
+                    child.style.left = event.clientX - Math.round(rect.left) + 'px';
+                    child.style.top = event.clientY - Math.floor(rect.top) + 'px';
                     child.style.opacity = 1;
                     child.style.transform = 'translate(-50%, -50%) scale(2.5)';
                     child.style.transition = 'transform .5s cubic-bezier(0, 0, 0.2, 1), opacity .2s cubic-bezier(0, 0, 0.2, 1), -webkit-transform .5s cubic-bezier(0, 0, 0.2, 1)';
