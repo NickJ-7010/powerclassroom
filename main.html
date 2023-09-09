@@ -4,17 +4,22 @@
     <head>
         <title>PowerClassroom</title>
         <meta charset="utf-8">
-        <meta name="viewport">
-        <link rel="shortcut icon" href="/assets/favicon.ico" />
+        <meta name="viewport" content="width=device-width">
+        <meta name="description" content="A brightspace web app with a google classroom themed UI.">
+        <meta name="theme-color" content="#ffffff"/>
+        <link rel="manifest" href="manifest.json"/>
+        <link rel="shortcut icon" href="/assets/static/favicon.ico"/>
         <style>
             @font-face {
                 font-family: 'Google';
-                src: url('/assets/Google Sans.woff2');
+                src: url('/assets/static/Google Sans.woff2');
+                font-display: swap;
             }
 
             @font-face {
                 font-family: 'Google Medium';
-                src: url('/assets/Google Sans Medium.woff2');
+                src: url('/assets/static/Google Sans Medium.woff2');
+                font-display: swap;
             }
             
             body {
@@ -31,11 +36,14 @@
 
             :root[data-applied-mode="true"] {
                 color-scheme: dark;
-                --background: #000000;
+                --background: #1a1a1a;
                 --color: rgb(165, 169, 174);
                 --seperator: rgb(71, 69, 65);
                 --material-outlined-button-hover: rgb(63, 76, 93);
                 --rich-color: rgba(255, 255, 255, 0.87);
+                --secondary-background: #202020;
+                --todo-shadow-1: 0 1px 2px 0 rgba(0, 0, 0, .4);
+                --todo-shadow-2: 0 2px 6px 2px rgba(0, 0, 0, .25);
             }
 
             :root[data-applied-mode="false"] {
@@ -45,6 +53,9 @@
                 --seperator: rgb(218, 220, 224);
                 --material-outlined-button-hover: rgb(210, 227, 252);
                 --rich-color: rgba(0, 0, 0, 0.87);
+                --secondary-background: #ffffff;
+                --todo-shadow-1: 0 1px 2px 0 rgba(120, 124, 127, .4);
+                --todo-shadow-2: 0 2px 6px 2px rgba(120, 124, 127, .25);
             }
 
             #top_bar {
@@ -99,12 +110,27 @@
                 white-space: nowrap;
             }
 
+            .material_outlined_button > div {
+                background-image: radial-gradient(circle farthest-side, rgba(66, 133, 244, .16), rgba(66, 133, 244, .16) 80%, rgba(66, 133, 244, 0) 100%)
+            }
+
+            .material_filled_button > div {
+                background-image: radial-gradient(circle farthest-side, rgba(255, 255, 255, .322), rgba(255, 255, 255, .322) 80%, rgba(255, 255, 255, 0) 100%);
+            }
+
             .material_outlined_button > div, .material_filled_button > div {
                 position: absolute;
                 pointer-events: none;
                 background-size: cover;
                 opacity: 0;
                 transform: translate(-50%, -50%) scale(0);
+                transition: opacity .2s ease, visibility 0s ease .2s, transform 0s ease .2s, -webkit-transform 0s ease .2s;
+            }
+
+            .material_outlined_button.active > div, .material_filled_button.active > div {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(2.5);
+                transition: transform .5s cubic-bezier(0, 0, 0.2, 1), opacity .2s cubic-bezier(0, 0, 0.2, 1), -webkit-transform .5s cubic-bezier(0, 0, 0.2, 1);
             }
 
             .material_outlined_button {
@@ -164,6 +190,16 @@
                 width: 100%;
                 height: 100%;
                 opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+                transition: opacity .2s ease, visibility 0s ease .2s, transform 0s ease .2s, -webkit-transform 0s ease .2s;
+                background-image: radial-gradient(circle farthest-side, currentColor, currentColor 80%, transparent 100%);
+                filter: opacity(0.16);
+            }
+
+            .material_text_button.active > div {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(2.5);
+                transition: transform .5s cubic-bezier(0, 0, 0.2, 1), opacity .2s cubic-bezier(0, 0, 0.2, 1), -webkit-transform .5s cubic-bezier(0, 0, 0.2, 1);
             }
 
             .material_text_button > div:not(.background) {
@@ -216,7 +252,7 @@
                 height: calc(100% - 16px);
                 width: 19rem;
                 border-right: 1px solid var(--seperator);
-                background-color: var(--background);
+                background-color: var(--secondary-background);
                 transform: translateX(-100%);
                 transition: transform .3s ease;
                 color: var(--color);
@@ -224,12 +260,17 @@
                 overflow: hidden auto;
             }
 
+            #menu.active {
+                transform: none;
+                box-shadow: 0 4px 4px 0 rgba(0, 0, 0, .3), 0 8px 12px 6px rgba(0, 0, 0, .15);
+            }
+
             @keyframes menu_animation {
                 0% {
-                    box-shadow: 0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15);
+                    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, .3), 0 8px 12px 6px rgba(0, 0, 0, .15);
                 }
                 100% {
-                    box-shadow: 0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15);
+                    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, .3), 0 8px 12px 6px rgba(0, 0, 0, .15);
                 }
             }
 
@@ -243,8 +284,17 @@
                 width: 100vw;
                 align-items: center;
                 justify-content: center;
-                background-color: rgba(32, 32, 32, 0.5);
+                background-color: rgba(0, 0, 0, 0.5);
+                opacity: 0;
+                animation: popup_pop 0.3s linear;
+                transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
+            }
+
+            #popup_form.active {
+                opacity: 1;
+                visibility: visible;
                 transition: opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1);
+                animation: none;
             }
 
             @keyframes popup_pop {
@@ -258,11 +308,17 @@
 
             #form_body {
                 color: var(--color);
-                box-shadow: 0 1px 3px 0 rgba(30, 34, 37, .3), 0 4px 8px 3px rgba(30, 34, 37, .15);
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .3), 0 4px 8px 3px rgba(0, 0, 0, .15);
                 max-width: 24em;
                 background-color: var(--background);
                 border-radius: 8px;
                 transform: scale(0.9);
+                transition: transform .15s cubic-bezier(0.4, 0, 1, 1), -webkit-transform .15s cubic-bezier(0.4, 0, 1, 1);
+            }
+
+            #popup_form.active > #form_body {
+                transform: scale(1);
+                transition: transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1);
             }
             
             #form_title {
@@ -310,21 +366,26 @@
             }
 
             .material_checkbox > div {
-                background-color: rgb(31, 31, 31, 0.12);
-            }
-
-            .material_checkbox[checked] > div {
-                background-color: rgb(26, 115, 232, 0.12);
-            }
-
-            .material_checkbox > div {
                 position: absolute;
                 height: 40px;
                 width: 40px;
                 top: 0;
                 left: 0;
                 border-radius: 50%;
-                transform: scale(0);
+                transform: scale(0.5);
+                background-color: rgb(31, 31, 31, 0.12);
+                transition: opacity .2s ease, visibility 0s ease .2s, transform 0s ease .2s, -webkit-transform 0s ease .2s;
+                opacity: 0;
+            }
+
+            .material_checkbox.active > div {
+                opacity: 1;
+                transform: scale(1);
+                transition: transform .2s cubic-bezier(0, 0, 0.2, 1), opacity 0s, -webkit-transform .2s cubic-bezier(0, 0, 0.2, 1);
+            }
+
+            .material_checkbox[checked] > div {
+                background-color: rgb(26, 115, 232, 0.12);
             }
 
             .material_checkbox > svg {
@@ -487,7 +548,6 @@
                 background-color: rgba(128, 128, 128, 0.1);
             }
 
-
             .material_filled_textbox:hover {
                 background-color: rgba(128, 128, 128, 0.15);
                 border-bottom-color: var(--rich-color);
@@ -557,7 +617,14 @@
                 opacity: 0;
                 background-size: cover;
                 background-color: rgb(26, 115, 232);
+                transform: translateX(-50%);
                 transition: width 0s linear .15s, opacity .15s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .material_filled_textbox.active > div:nth-child(3) > div {
+                width: 200%;
+                opacity: 1;
+                transition: width .25s linear;
             }
 
             #menu .button {
@@ -585,11 +652,11 @@
             }
 
             #menu .button:hover {
-                background-color: rgba(32, 33, 36, .04);
+                background-color: rgba(255, 255, 255, .04);
             }
 
             #menu .button:active {
-                background-color: rgba(26, 115, 232, .06);
+                background-color: rgba(26, 115, 232, .09);
             }
 
             #menu .button.active {
@@ -772,9 +839,9 @@
                 top: 2px;
                 z-index: 1;
                 display: none;
-                background: var(--background);
+                background: var(--secondary-background);
                 flex-direction: column;
-                box-shadow: 0 3px 5px -1px rgba(90, 94, 97, .2), 0 6px 10px 0 rgba(90, 94, 97, .14), 0 1px 18px 0 rgba(90, 94, 97, .12);
+                box-shadow: 0 3px 5px -1px rgba(0, 0, 0, .2), 0 6px 10px 0 rgba(0, 0, 0, .14), 0 1px 18px 0 rgba(0, 0, 0, .12);
                 border-radius: 4px;
                 padding: 8px 0;
             }
@@ -793,6 +860,20 @@
                 background-size: cover;
                 opacity: 0;
                 pointer-events: none;
+                transform: translate(-50%, -50%) scale(0);
+                transition: opacity .1s ease, visibility 0s ease .1s, transform 0s ease .1s, -webkit-transform 0s ease .1s;
+                opacity: 0;
+                background-color: rgba(128, 128, 128, 0.2);
+            }
+
+            .material_dropdown > div:nth-child(2) > div.active > div:nth-child(1) {
+                background-color: rgba(26, 115, 232, 0.125);
+            }
+
+            .material_dropdown > div:nth-child(2) > div > div:nth-child(1).active {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(2);
+                transition: transform .25s linear, opacity .1s linear, -webkit-transform .25s linear;
             }
 
             .material_dropdown > div:nth-child(2) > div > div:nth-child(2) {
@@ -898,7 +979,7 @@
                 transition: max-height .25s ease-out, visibility 0s linear .25s;
                 overflow: hidden;
                 border-left: 2px solid rgb(26, 115, 232);
-                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4) inset, 0 2px 6px 2px rgba(120, 124, 128, .25) inset;
+                box-shadow: var(--todo-shadow-1) inset, var(--todo-shadow-2) inset;
             }
 
             #todo_content .container > div {
@@ -998,16 +1079,18 @@
             }
 
             #todo_content .child > .header:hover {
-                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4), 0 2px 6px 2px rgba(120, 124, 127, .25);
+                box-shadow: var(--todo-shadow-1), var(--todo-shadow-2);
+                background: var(--secondary-background);
             }
 
             #todo_content .child.active > .header:hover {
-                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4), 0 2px 6px 2px rgba(120, 124, 128, .25);
-                background: var(--background);
+                box-shadow: var(--todo-shadow-1), var(--todo-shadow-2);
+                background: var(--secondary-background);
             }
 
             #todo_content .child > .header.clickable:active {
-                box-shadow: 0 1px 2px 0 rgba(120, 124, 127, .4) inset, 0 2px 6px 2px rgba(120, 124, 128, .25) inset;
+                box-shadow: var(--todo-shadow-1) inset, var(--todo-shadow-2) inset;
+                background: var(--background);
             }
 
             #todo_content .child > .header.clickable:active > .icon {
@@ -1084,13 +1167,12 @@
             </div>
             <div style="justify-content: end;">
                 <div id="theme_button" class="material_outlined_button">Dark mode</div>
+                <div id="brightspace_sign_in_button" class="material_outlined_button">Brightspace login</div>
                 <div id="equivalent_page_button" class="material_outlined_button">View equivalent page</div>
                 <div id="sign_in_button" class="material_filled_button">Sign in</div>
             </div>
         </div>
-        <div id="content">
-            Content
-        </div>
+        <div id="content"></div>
         <div id="menu">
             <div class="button active" id="home_button">
                 <svg focusable="false" width="24" height="24" viewBox="0 0 24 24"><path d="M12 3L4 9v12h16V9l-8-6zm6 16h-3v-6H9v6H6v-9l6-4.5 6 4.5v9z"></path></svg>
@@ -1137,8 +1219,8 @@
         <script>
             var darkMode = localStorage.getItem('darkMode');
             var eqURL = 'https://brightspace.aacps.org/d2l/home/7684';
-            var classes = JSON.parse(localStorage.getItem('classes') ?? '[]');
-            var content = JSON.parse(localStorage.getItem('content') ?? '{}');
+            var classes = parseClasses(localStorage.getItem('classes'), true);
+            var content = parseContent(localStorage.getItem('content'), true);
             var menuOpen = false;
 
             console.log('%cWARNING!\n%cUsing this console may allow attackers to impersonate you and steal your information and accounts using an attack called Self-XSS.\nDo not enter or paste code that you did not write or do not understand.', 'background: yellow; color: red; font-weight: bolder; font-size: 50px', 'font-size: 25px');
@@ -1261,7 +1343,7 @@
                                             icon.innerHTML = '<svg style="height: 100%; width: 100%" viewBox="0 0 192 192"><g id="foreground"><path id="clipboard" fill="#FBBC04" d="M44,20h104c6.63,0,12,5.37,12,12v140c0,6.63-5.37,12-12,12H44c-6.63,0-12-5.37-12-12V32C32,25.37,37.37,20,44,20z"/><path id="document_2_" fill="#4285F4" d="M116,168H52c-2.21,0-4-1.79-4-4V40c0-2.21,1.79-4,4-4h88c2.21,0,4,1.79,4,4v100"/><path id="document_x5F_flap" fill="#1967D2" d="M120,140h24l-28,28v-24C116,141.79,117.79,140,120,140z"/><path id="detail" fill="#F1F3F4" d="M64,128v-8h64v8H64z M64,144v-8h32v8H64z M64,112v-8h64v8H64z M75,78.94l5.66-5.66L91.97,84.6l28.28-28.28l5.66,5.66L91.97,95.91L75,78.94z"/><path id="clip" fill="#174EA6" d="M96,8c-17.36,0-36,9.4-36,21v15h72V29C132,17.4,113.36,8,96,8z"/><circle id="hole" fill="#FFFFFF" cx="96" cy="26" r="6"/></g></svg>';
                                             break;
                                         case 'BA':
-                                            icon.innerHTML = '<svg fill="#e87512" style="height: 100%; width: 100%" viewBox="0 0 141.64 189"><ellipse cx="33" cy="33" rx="7" ry="7"></ellipse><ellipse cx="66.5" cy="65.5" rx="7" ry="7"></ellipse><ellipse cx="46.5" cy="91.5" rx="7" ry="7"></ellipse><ellipse cx="126.5" cy="94.5" rx="7.5" ry="7.5"></ellipse><ellipse cx="33.5" cy="155.5" rx="7" ry="7"></ellipse><rect x="33" y="26" width="44" height="14"></rect><rect x="33.5" y="148.5" width="43" height="14"></rect><rect x="46.5" y="84.5" width="30" height="14"></rect><rect x="20" y="0" width="57" height="14"></rect><rect x="19" y="174" width="61" height="15"></rect><rect x="0" y="19" width="15" height="151"></rect><rect x="66.5" y="58.5" width="10.5" height="14"></rect><path d="M 0 170 q 4 17 19 19 L 19 174 q -3 -1 -4 -4"></path><path d="M 0 19 q 4 -19 20 -19 L 20 14 q -4 1 -5 5"></path><path d="M 77 26 C 106 26 106 72.5 77 72.5 L 77 58.5 C 87 58.5 87 40 77 40"></path><path d="M 76.5 84.5 C 127 84.5 127 162.5 76.5 162.5 L 76.5 148.5 C 108 148.5 108 98.5 76.5 98.5"></path><path d="M 77 0 C 141 0 141 97 77 97 L 77 84.5 C 121 84.5 121 14 77 14"></path><path d="M 133.8 93 C 160 148.5 115 187.5 80 189 L 80 174 C 117.5 169 138 134 119 94.5"></path></svg>';
+                                            icon.innerHTML = '<svg fill="#e87512" style="height: 100%; width: 100%" viewBox="0 0 141.64 189"><path d="M 33,26 A 5,5 0,0,0 33,40 L 77,40 M 77,26 C 106,26 106,72.5 77,72.5 L 66.5,58.5 L 66.5,72.5 A 5,5 0,0,1 66.5,58.5 L 77,58.5 77,72.5 66.5,72.5 66.5,58.5 77,58.5 C 87,58.5 87,40 77,40 L 33,26 M 80,174 L 20,174 Q 15,174 15,170 L 15,19 Q 15,14 19,14 L 77,14 C 121,14 121,84.5 77,84.5 L 46.5,84.5 A 5,5 0,0,0 46.5,98.5 L 76.5,98.5 C 108,98.5 108,148.5 76.5,148.5 L 33.5,148.5 A 5,5 0,0,0 33.5,162.5 L 76.5,162.5 C 127,162.5 127,84.5 76.5,84.5 L 77,97 C 141,97 141,0, 77,0 L 19,0 Q 0,0 0,19 L 0,170 Q 0,189 20,189 L 80,189 C 115,187.5 160,148.5 133.8,93 L 119,94.5 C 138,134 117.5,169 80,174"></path><ellipse cx="126.5" cy="94.5" rx="7.5" ry="7.5"></ellipse></svg>';
                                             break;
                                         case 'F':
                                             icon.innerHTML = '<svg style="height: 100%; width: 100%; fill: var(--color); transition: fill .1s linear" viewBox="0 -960 960 960"><path d="M319.333-246.667h321.334v-66.666H319.333v66.666Zm0-166.667h321.334V-480H319.333v66.666ZM226.666-80q-27 0-46.833-19.833T160-146.666v-666.668q0-27 19.833-46.833T226.666-880H574l226 226v507.334q0 27-19.833 46.833T733.334-80H226.666Zm314.001-542.667h192.667L540.667-813.334v190.667Z"/></svg>';
@@ -1363,7 +1445,7 @@
                                     });
                                 });
                                 
-                                var caseSensitive = settings.get('case') != null;
+                                var caseSensitive = settings.has('case');
                                 var compareStr = document.getElementById('work_search').value;
                                 compareStr = caseSensitive ? compareStr : compareStr.toUpperCase();
                                 
@@ -1414,14 +1496,12 @@
                         }
                         
                         document.getElementById('search_config_button').onclick = function () {
-                            const formElement = document.getElementById('popup_form');
-
                             document.getElementById('form_title').innerText = 'Set search filters?';
                             document.getElementById('form_subtitle').innerHTML = `Select the filters you want and then submit to save your selection.`;
                             document.getElementById('form_content').classList.add('border');
                             document.getElementById('form_content').innerHTML = `
                                 <div style="display: flex; align-items: center; user-select: none;">
-                                    <div class="material_checkbox" id="case_checkbox"></div>
+                                    <div class="material_checkbox" id="case_checkbox" ${settings.has('case') ? 'checked' : ''}></div>
                                     Case-sensitive search
                                 </div>
                             `;
@@ -1429,7 +1509,7 @@
                             convertToMaterialCheckbox(document.getElementById('case_checkbox'));
                             
                             document.getElementById('form_submit').onclick = async function () {
-                                if (document.getElementById('case_checkbox')) settings.set('case', '');
+                                if (document.getElementById('case_checkbox').getAttribute('checked') != null) settings.set('case', '');
                                 else settings.delete('case');
 
                                 history.replaceState({}, document.title, '?' + settings.toString());
@@ -1437,15 +1517,11 @@
                                 document.getElementById('form_cancel').onclick();
                             }
 
-                            formElement.style.opacity = 1;
-                            formElement.style.visibility = 'visible';
-                            formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
-                            document.getElementById('form_body').style.transform = 'scale(1)';
-                            document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
+                            document.getElementById('popup_form').classList.add('active');
                         }
 
                         document.getElementById('close_embed_button').onclick = function () {
-                            document.getElementById('embed_container').classList.remove('visible');
+                            document.getElementById('embed_container').removeAttribute('class');
                         }
 
                         document.getElementById('work_search').oninput = function () {
@@ -1456,8 +1532,6 @@
                         }
 
                         document.getElementById('get_content_button').onclick = function () {
-                            const formElement = document.getElementById('popup_form');
-
                             document.getElementById('form_title').innerText = 'Get class content?';
                             document.getElementById('form_subtitle').innerHTML = `Select what content you would like to get from <span style="font-family: 'Google Medium'">${classes.find(course => course.id == document.getElementById('class_selector').value)?.name ?? 'All classes'}</span> and then submit.`;
                             document.getElementById('form_content').classList.add('border');
@@ -1479,19 +1553,19 @@
                                 showSnackbar({ text: 'Attemping to get class content', duration: 10000 });
                                 document.getElementById('form_cancel').onclick();
 
-                                function unpack (arr, entry) {
+                                function unpack (arr, parent) {
                                     for (const obj of arr) {
                                         const construct = { };
 
+                                        if (parent) {
+                                            parent.children.push(items.length);
+                                        }
                                         construct.title = obj.Title;
                                         construct.date = new Date(obj.LastModifiedDate).valueOf();
                                         if (!obj.ActivityType) {
-                                            construct.type = entry ? 'M' : 'SM';
-                                            construct.description = obj.Description.Html;
+                                            construct.type = !parent ? 'M' : 'SM';
+                                            if (obj.Description.Html) construct.description = obj.Description.Html;
                                             construct.children = [];
-                                            for (var i = 0; i < (obj.Modules.length + obj.Topics.length); i++) {
-                                                construct.children.push(items.length + i + 1);
-                                            }
                                         } else {
                                             construct.url = obj.Url;
                                             if (obj.ActivityType == 7) construct.type = 'GA';
@@ -1504,8 +1578,8 @@
                                         items.push(construct);
 
                                         if (construct.children) {
-                                            unpack(obj.Modules);
-                                            unpack(obj.Topics);
+                                            unpack(obj.Modules, construct);
+                                            unpack(obj.Topics, construct);
                                         }
                                     }
                                 }
@@ -1515,7 +1589,7 @@
 
                                     function evalFinish () {
                                         if (completed == classes.length) {
-                                            localStorage.setItem('content', JSON.stringify(content));
+                                            localStorage.setItem('content', parseContent(content));
                                             drawElements();
                                             showSnackbar({ text: 'Successfully got class content!', icon: 'success', duration: 10000 });
                                         }
@@ -1525,7 +1599,7 @@
                                         const res = JSON.parse(await bsApiReq(`/d2l/api/le/unstable/${course.id}/content/toc?loadDescription=true`));
                                         var items = [];
 
-                                        unpack(res.Modules, true);
+                                        unpack(res.Modules, null);
                                         content[course.id] = items;
 
                                         completed++;
@@ -1536,20 +1610,16 @@
                                     const res = JSON.parse(await bsApiReq(`/d2l/api/le/unstable/${classId}/content/toc?loadDescription=true`));
                                     var items = [];
 
-                                    unpack(res.Modules, true);
+                                    unpack(res.Modules, null);
                                     content[classId] = items;
 
-                                    localStorage.setItem('content', JSON.stringify(content));
+                                    localStorage.setItem('content', parseContent(content));
                                     drawElements();
                                     showSnackbar({ text: 'Successfully got class content!', icon: 'success', duration: 10000 });
                                 }
                             }
 
-                            formElement.style.opacity = 1;
-                            formElement.style.visibility = 'visible';
-                            formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
-                            document.getElementById('form_body').style.transform = 'scale(1)';
-                            document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
+                            document.getElementById('popup_form').classList.add('active');
                         }
 
                         drawElements();
@@ -1601,7 +1671,7 @@
                                     return 0;
                                 });
 
-                                localStorage.setItem('classes', JSON.stringify(classes));
+                                localStorage.setItem('classes', parseClasses(classes));
 
                                 loadClasses(classes);
                             });
@@ -1735,18 +1805,14 @@
 
             document.getElementById('menu_button').onclick = function () {
                 const element = document.getElementById('menu');
-                element.style.transform = 'none';
-                element.style.boxShadow = '0 4px 4px 0 rgba(60, 64, 67, .3), 0 8px 12px 6px rgba(60, 64, 67, .15)';
+                element.classList.add('active');
                 menuOpen = true;
 
                 document.body.onclick = function (event) {
                     if (event.target.id != 'menu' && event.target.id != 'menu_button' && menuOpen) {
                         menuOpen = false;
                         const element = document.getElementById('menu');
-                        element.removeAttribute('style');
-                        void element.offsetLeft;
-                        element.style.transform = 'translateX(-100%)';
-                        element.style.animation = '.3s ease menu_animation';
+                        element.removeAttribute('class');
                     }
                 }
             }
@@ -1754,21 +1820,14 @@
             document.getElementById('popup_form').onmousedown = function (event) {
                 if (event == undefined || (event.target.id == 'popup_form' || (event.type == 'click' && event.target.id == 'form_cancel'))) {
                     const element = document.getElementById('popup_form');
-                    element.removeAttribute('style');
-                    void element.offsetLeft;
-                    element.style.opacity = 0;
-                    element.style.visibility = 'hidden';
-                    element.style.animation = 'popup_pop 0.3s linear';
-                    element.style.transition = 'opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1) 0.15s';
+                    element.removeAttribute('class');
                     element.onanimationend = function () {
                         document.getElementById('form_content').innerHTML = '';
-                        document.getElementById('form_content').classList.remove('border');
+                        document.getElementById('form_content').removeAttribute('class');
                         document.getElementById('form_submit').innerHTML = 'Submit';
                         convertToMaterialButton(document.getElementById('form_submit'));
                         element.onanimationend = undefined;
                     }
-                    document.getElementById('form_body').style.transform = 'scale(0.9)';
-                    document.getElementById('form_body').style.transition = 'transform .15s cubic-bezier(0.4, 0, 1, 1), -webkit-transform .15s cubic-bezier(0.4, 0, 1, 1)';
                     document.getElementById('form_submit').onclick = function () {
                         throw "Error: The submit button was not redefined!";
                     }
@@ -1778,7 +1837,7 @@
             document.getElementById('form_cancel').onclick = document.getElementById('popup_form').onmousedown;
 
             document.onkeydown = function (event) {
-                if (document.getElementById('popup_form').style.opacity == 1) {
+                if (document.getElementById('popup_form').classList.contains('active')) {
                     if (event.key == 'Escape') {
                         document.getElementById('form_cancel').onclick();
                     } else if (event.key == 'Enter') {
@@ -1786,14 +1845,12 @@
                     }
                 } else {
                     if (event.key == 'Escape') {
-                        document.getElementById('embed_container').classList.remove('visible');
+                        document.getElementById('embed_container').removeAttribute('class');
                     }
                 }
             }
 
             document.getElementById('sign_in_button').onclick = function () {
-                const formElement = document.getElementById('popup_form');
-
                 const tokens = JSON.parse(localStorage.getItem('tokens') ?? '{}');
 
                 document.getElementById('form_title').innerText = 'Sign into services?';
@@ -1851,38 +1908,44 @@
                             password: document.getElementById('password_textbox').value
                         });
 
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('GET', `${window.location.origin}/save-auth`, true);
-                        xhr.onreadystatechange = function() {
+                        var preAuth = new XMLHttpRequest();
+                        preAuth.open('GET', `${window.location.origin}/save-auth`, true);
+                        preAuth.onreadystatechange = function () {
                             if (this.readyState == 4 && this.status == 200) {
-                                var xhr = new XMLHttpRequest();
-                                xhr.open('POST', `${window.location.origin}/auth`, true);
-                                xhr.onreadystatechange = function() {
-                                    const res = JSON.parse(this.responseText);
+                                var auth = new XMLHttpRequest();
+                                auth.open('POST', `${window.location.origin}/auth`, true);
+                                auth.onreadystatechange = function () {
+                                    if (this.readyState == 4 && this.status == 200) {
+                                        const res = JSON.parse(this.responseText);
 
-                                    if (res.powerschool) {
-                                        tokens.powerschool = Date.now();
-                                        localStorage.setItem('powerschool', res.powerschool);
+                                        if (res.error) {
+                                            showSnackbar({ text: `Failed to sign into ${res.error == 1 ? 'Powerschool' : res.error == 2 ? 'Brightspace' : 'Powerschool and Brightspace'}`, icon: 'error', duration: 10000 });
+                                        }
+
+                                        if (res.powerschool) {
+                                            tokens.powerschool = Date.now();
+                                            localStorage.setItem('powerschool', res.powerschool);
+                                        }
+                                        if (res.brightspace) {
+                                            tokens.brightspace = Date.now();
+                                            localStorage.setItem('brightspace', res.brightspace);
+                                        }
+
+                                        localStorage.setItem('tokens', JSON.stringify(tokens));
+
+                                        if (res.powerschool || res.brightspace) showSnackbar({ text: 'Successfully signed in!', icon: 'success', duration: 10000 });
                                     }
-                                    if (res.brightspace) {
-                                        tokens.brightspace = Date.now();
-                                        localStorage.setItem('brightspace', res.brightspace);
-                                    }
-
-                                    localStorage.setItem('tokens', JSON.stringify(tokens));
-
-                                    showSnackbar({ text: 'Successfully signed in!', icon: 'success', duration: 10000 });
                                 }
-                                xhr.send(data);
+                                auth.send(data);
                             }
-                        };
-                        xhr.send();
+                        }
+                        preAuth.send();
 
                         document.getElementById('form_cancel').onclick();
                     }
 
                     function poll () {
-                        if (document.getElementById('popup_form').style.opacity == 0) return;
+                        if (!document.getElementById('popup_form').classList.contains('active')) return;
                         if (document.getElementById('student_id_textbox').matches(':autofill')) {
                             const idElm = document.getElementById('student_id_textbox');
                             const passwordElm = document.getElementById('password_textbox');
@@ -1903,23 +1966,90 @@
                     }
 
                     setTimeout(poll, 100);
-
-                    formElement.style.opacity = 1;
-                    formElement.style.visibility = 'visible';
-                    formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
-                    document.getElementById('form_body').style.transform = 'scale(1)';
-                    document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
                 }
 
-                formElement.style.opacity = 1;
-                formElement.style.visibility = 'visible';
-                formElement.style.transition = 'opacity 0.05s cubic-bezier(0.4, 0, 0.2, 1)';
-                document.getElementById('form_body').style.transform = 'scale(1)';
-                document.getElementById('form_body').style.transition = 'transform .225s cubic-bezier(0, 0, 0.2, 1),-webkit-transform .225s cubic-bezier(0, 0, 0.2, 1)';
+                document.getElementById('popup_form').classList.add('active');
+            }
+
+            document.getElementById('brightspace_sign_in_button').onclick = function () {
+                window.open('https://brightspace.aacps.org/d2l/login', '_blank');
             }
             
             document.getElementById('equivalent_page_button').onclick = function () {
                 window.open(eqURL, '_blank');
+            }
+
+            function parseClasses (data, toJSON) {
+                const CHAR = String.fromCharCode(0xf000);
+                if (toJSON) {
+                    return data.length ? data.split(CHAR).map(str => str.match(/(?<id>[0-9]*):(?<name>.*)/).groups) : [];
+                } else {
+                    return data.map(obj => `${obj.id}:${obj.name}`).join(CHAR);
+                }
+            }
+
+            function parseContent (data, toJSON) {
+                const CHAR = String.fromCharCode(0xf000);
+                const CHAR2 = String.fromCharCode(0xf001);
+                if (toJSON) {
+                    const obj = { };
+                    const classAmounts = { };
+                    const arr = data.split(CHAR);
+                    var i = 0;
+                    for (const str of arr.shift().split(',')) {
+                        const values = str.split(':');
+                        obj[values[0]] = [];
+                        classAmounts[values[0]] = parseInt(values[1]);
+                    }
+
+                    for (const [id, amount] of Object.entries(classAmounts)) {
+                        for (const str of arr.slice(i, i + amount)) {
+                            const construct = { };
+                            for (const entry of str.split(CHAR2)) {
+                                const short = entry.slice(0, 1);
+                                const value = entry.slice(1);
+                                var key = '';
+                                if (short == 'T') key = 'title';
+                                else if (short == 'D') key = 'date';
+                                else if (short == 'A') key = 'type';
+                                else if (short == 'S') key = 'description';
+                                else if (short == 'C') key = 'children';
+                                else if (short == 'U') key = 'url';
+                                construct[key] = short == 'C' ? value.split(',').map(int => parseInt(int)).filter(int => !isNaN(int)) : short == 'D' ? parseInt(value) : value;
+                            }
+                            obj[id].push(construct);
+                        }
+                        i += amount;
+                    }
+                    return obj;
+                } else {
+                    var prefix = [];
+                    for (const [id, arr] of Object.entries(data)) {
+                        if (id) prefix.push(`${id}:${arr.length}`);
+                    }
+                    prefix = prefix.join(',');
+
+                    var arr = [];
+                    for (const a of Object.values(data)) {
+                        for (const obj of a) {
+                            var values = [];
+                            for (const [key, value] of Object.entries(obj)) {
+                                var short = '';
+                                if (key == 'title') short = 'T';
+                                else if (key == 'date') short = 'D';
+                                else if (key == 'type') short = 'A';
+                                else if (key == 'description') short = 'S';
+                                else if (key == 'children') short = 'C';
+                                else if (key == 'url') short = 'U';
+                                values.push(short + value);
+                            }
+                            arr.push(values.join(CHAR2));
+                        }
+                    }
+                    arr = arr.join(CHAR);
+
+                    return prefix + CHAR + arr;
+                }
             }
 
             function bsApiReq (endpoint) {
@@ -1933,7 +2063,7 @@
                             localStorage.setItem('tokens', JSON.stringify(tokens));
                             res(this.responseText);
                         }
-                    };
+                    }
                     xhr.onloadend = function() {
                         if(xhr.status == 403) showSnackbar({ icon: 'error', button: { text: 'Sign in', callback: document.getElementById('sign_in_button').onclick }, text: 'Error! Inavlid tokens, please sign in!', duration: 15000 });
                     }
@@ -2012,6 +2142,7 @@
             }
 
             convertToMaterialButton(document.getElementById('theme_button'));
+            convertToMaterialButton(document.getElementById('brightspace_sign_in_button'));
             convertToMaterialButton(document.getElementById('equivalent_page_button'));
             convertToMaterialButton(document.getElementById('sign_in_button'));
             convertToMaterialButton(document.getElementById('form_cancel'));
@@ -2048,22 +2179,14 @@
                     splashChild.style.height = element.clientWidth + 'px';
 
                     child.onmousedown = function (event) {
-                        if (child.classList.contains('active')) {
-                            splashChild.style.backgroundColor = 'rgba(26, 115, 232, 0.125)';
-                        } else {
-                            splashChild.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
-                        }
-                        splashChild.style.left = event.offsetX + 'px';
-                        splashChild.style.top = event.offsetY + 'px';
-                        splashChild.style.opacity = 1;
-                        splashChild.style.transform = 'translate(-50%, -50%) scale(2)';
-                        splashChild.style.transition = 'transform .25s linear, opacity .1s linear, -webkit-transform .25s linear';
+                        const rect = child.getBoundingClientRect();
+                        splashChild.style.left = event.clientX - Math.round(rect.left) + 'px';
+                        splashChild.style.top = event.clientY - Math.floor(rect.top) + 'px';
+                        splashChild.classList.add('active');
                     }
 
                     child.onmouseup = function (event) {
-                        splashChild.style.transform = 'translate(-50%, -50%) scale(0)';
-                        splashChild.style.transition = 'opacity .1s ease, visibility 0s ease .1s, transform 0s ease .1s, -webkit-transform 0s ease .1s';
-                        splashChild.style.opacity = 0;
+                        splashChild.removeAttribute('class');
                     }
 
                     child.onmouseleave = child.onmouseup;
@@ -2072,7 +2195,7 @@
                     child.appendChild(text);
 
                     child.onclick = function () {
-                        selectElement.querySelector('.active')?.classList?.remove('active');
+                        selectElement.querySelector('.active')?.removeAttribute('class');
                         child.classList.add('active');
                         displayText.innerHTML = text.innerHTML;
                         element.value = child.getAttribute('value');
@@ -2128,17 +2251,15 @@
                     input.setAttribute('required', '');
 
                     input.onclick = function (event) {
-                        splash.style.left = event.offsetX + 'px';
-                        splash.style.width = '200%';
-                        splash.style.transform = 'translateX(-50%)';
-                        splash.style.opacity = '1';
-                        splash.style.transition = 'width .25s linear';
+                        const rect = element.getBoundingClientRect();
+                        splash.style.left = event.clientX - Math.round(rect.left) + 'px';
+                        element.classList.add('active');
                     }
 
                     input.onfocus = input.onclick;
 
                     input.onblur = function () {
-                        if (!element.querySelector('input:focus')) splash.removeAttribute('style');
+                        if (!element.querySelector('input:focus')) element.classList.remove('active');
                     }
 
                     splashContainer.appendChild(splash);
@@ -2163,15 +2284,11 @@
                 }
 
                 element.onmousedown = function (event) {
-                    child.style.opacity = 1;
-                    child.style.transform = 'scale(1)';
-                    child.style.transition = 'transform .2s cubic-bezier(0, 0, 0.2, 1), opacity 0s, -webkit-transform .2s cubic-bezier(0, 0, 0.2, 1)';
+                    element.classList.add('active');
                 }
 
                 element.onmouseup = function (event) {
-                    child.style.transform = 'scale(0.5)';
-                    child.style.transition = 'opacity .2s ease, visibility 0s ease .2s, transform 0s ease .2s, -webkit-transform 0s ease .2s';
-                    child.style.opacity = 0;
+                    element.classList.remove('active');
                 }
 
                 element.onmouseleave = element.onmouseup;
@@ -2186,32 +2303,21 @@
                 child.style.height = max;
 
                 element.onmousedown = function (event) {
-                    child.style.left = event.offsetX + 'px';
-                    child.style.top = event.offsetY + 'px';
-                    child.style.opacity = 1;
-                    child.style.transform = 'translate(-50%, -50%) scale(2.5)';
-                    child.style.transition = 'transform .5s cubic-bezier(0, 0, 0.2, 1), opacity .2s cubic-bezier(0, 0, 0.2, 1), -webkit-transform .5s cubic-bezier(0, 0, 0.2, 1)';
+                    const rect = element.getBoundingClientRect();
+                    child.style.left = event.clientX - Math.round(rect.left) + 'px';
+                    child.style.top = event.clientY - Math.round(rect.top) + 'px';
+                    element.classList.add('active');
                 }
 
                 element.onmouseup = function (event) {
-                    child.style.transform = 'translate(-50%, -50%) scale(0)';
-                    child.style.transition = 'opacity .2s ease, visibility 0s ease .2s, transform 0s ease .2s, -webkit-transform 0s ease .2s';
-                    child.style.opacity = 0;
+                    element.classList.remove('active');
                 }
 
                 element.onmouseleave = element.onmouseup;
                 
-                if (element.classList.contains('material_outlined_button')) {
-                    child.style.backgroundImage = 'radial-gradient(circle farthest-side, rgba(66, 133, 244, .16), rgba(66, 133, 244, .16) 80%, rgba(66, 133, 244, 0) 100%)';
-                } else if (element.classList.contains('material_filled_button')) {
-                    child.style.backgroundImage = 'radial-gradient(circle farthest-side, rgba(255, 255, 255, .322), rgba(255, 255, 255, .322) 80%, rgba(255, 255, 255, 0) 100%)';
-                } else if (element.classList.contains('material_text_button')) {
+                if (element.classList.contains('material_text_button')) {
                     const backgroundChild = document.createElement('div');
                     backgroundChild.classList.add('background');
-
-                    child.style.backgroundImage = 'radial-gradient(circle farthest-side, currentColor, currentColor 80%, transparent 100%)';
-                    child.style.filter = 'opacity(0.16)';
-
                     element.appendChild(backgroundChild);
                 }
 
