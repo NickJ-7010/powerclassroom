@@ -31,6 +31,8 @@ http.createServer((req, res) => {
                     powerschool: undefined,
                     brightspace: undefined,
                 }
+                
+                var error = 0;
 
                 function validateFinish () {
                     if (typeof completed.brightspace == 'string' == request.brightspace && typeof completed.powerschool == 'string' == request.powerschool) {
@@ -38,7 +40,8 @@ http.createServer((req, res) => {
                         res.setHeader('Content-Type', 'text/plain');
                         res.end(JSON.stringify({
                             powerschool: completed.powerschool,
-                            brightspace: completed.brightspace
+                            brightspace: completed.brightspace,
+                            error: error
                         }));
                     }
                 }
@@ -52,7 +55,12 @@ http.createServer((req, res) => {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         }
                     }, response => {
-                        completed.powerschool = [response.rawHeaders.find(header => header.startsWith('JSESSIONID=')).split(';')[0], response.rawHeaders.find(header => header.startsWith('psaid=')).split(';')[0], response.rawHeaders.find(header => header.startsWith('B100Serverpoolcookie=')).split(';')[0]].join(';');
+                        try {
+                            completed.powerschool = [response.rawHeaders.find(header => header.startsWith('JSESSIONID=')).split(';')[0], response.rawHeaders.find(header => header.startsWith('psaid=')).split(';')[0], response.rawHeaders.find(header => header.startsWith('B100Serverpoolcookie=')).split(';')[0]].join(';');
+                        } catch (e) {
+                            request.powerschool = false;
+                            error += 1;
+                        }
                         validateFinish();
                     });
 
@@ -72,27 +80,33 @@ http.createServer((req, res) => {
                     await page.goto('https://brightspace.aacps.org/d2l/lp/auth/saml/initiate-login?entityId=https://sts.windows.net/b7d27e93-356b-4ad8-8a70-89c35df207c0/', { waitUntil: ['networkidle2'] });
 
                     setTimeout(async () => {
-                        const navigationPromise = page.waitForNavigation({ waitUntil: ['networkidle2'] });
-                    
-                        await page.waitForSelector('[name="loginfmt"]');
-                        await page.type('[name="loginfmt"]', request.id + '@aacps.org');
-                        await page.click('[type="submit"]');
-                    
-                        await navigationPromise;
-                        await page.waitForResponse(response => response.status() === 200);
-                    
-                        await page.waitForSelector('input[type="password"]', { visible: true });
-                        await page.type('input[type="password"]', request.password);
-                        await page.click('[type="submit"]');
-                    
-                        await navigationPromise;
-                        await page.waitForResponse(response => response.headers()['set-cookie']?.includes('d2lSessionVal='));
-                        
-                        completed.brightspace = (await page.cookies('https://brightspace.aacps.org')).map(cookie => `${cookie.name}=${cookie.value}`).join(';');
-                        
-                        validateFinish();
+                        try {
+                            const navigationPromise = page.waitForNavigation({ waitUntil: ['networkidle2'] });
+                            
+                            await page.waitForSelector('[name="loginfmt"]');
+                            await page.type('[name="loginfmt"]', request.id + '@aacps.org');
+                            await page.click('[type="submit"]');
+                            
+                            await navigationPromise;
+                            await page.waitForResponse(response => response.status() === 200);
+                            
+                            await page.waitForSelector('input[type="password"]', { visible: true });
+                            await page.type('input[type="password"]', request.password);
+                            await page.click('[type="submit"]');
+                            
+                            await navigationPromise;
+                            await page.waitForResponse(response => response.headers()['set-cookie']?.includes('d2lSessionVal='));
+                            
+                            completed.brightspace = (await page.cookies('https://brightspace.aacps.org')).map(cookie => `${cookie.name}=${cookie.value}`).join(';');
+                            
+                            validateFinish();
 
-                        await browser.close();
+                            await browser.close();
+                        } catch (e) {
+                            request.brightspace = false;
+                            error += 2;
+                            validateFinish();
+                        }
                     }, 1000);
                 }
 
