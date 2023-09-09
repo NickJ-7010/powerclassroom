@@ -11,7 +11,7 @@ const mimeTypes = {
     "json": "application/json",
     "js": "text/javascript",
     "css": "text/css"
-};
+}
 
 const server = http.createServer((req, res) => {
     if (req.url == '/favicon.ico') {
@@ -39,7 +39,7 @@ const server = http.createServer((req, res) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
         res.end(fs.readFileSync('main.html'));
-    };
+    }
 });
 
 server.listen(port, () => {
