@@ -1219,8 +1219,8 @@
         <script>
             var darkMode = localStorage.getItem('darkMode');
             var eqURL = 'https://brightspace.aacps.org/d2l/home/7684';
-            var classes = parseClasses(localStorage.getItem('classes'), true);
-            var content = parseContent(localStorage.getItem('content'), true);
+            var classes = parseClasses(localStorage.getItem('classes') ?? '', true);
+            var content = parseContent(localStorage.getItem('content') ?? '', true);
             var menuOpen = false;
 
             console.log('%cWARNING!\n%cUsing this console may allow attackers to impersonate you and steal your information and accounts using an attack called Self-XSS.\nDo not enter or paste code that you did not write or do not understand.', 'background: yellow; color: red; font-weight: bolder; font-size: 50px', 'font-size: 25px');
