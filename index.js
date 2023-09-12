@@ -1,4 +1,3 @@
-const minify = import('minify');
 const http = require('http');
 const fs = require('fs');
 
@@ -13,8 +12,6 @@ const mimeTypes = {
     "js": "text/javascript",
     "css": "text/css"
 }
-
-let miniFile;
 
 const server = http.createServer((req, res) => {
     if (req.url == '/favicon.ico') {
@@ -43,41 +40,10 @@ const server = http.createServer((req, res) => {
     } else {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
-        res.end(miniFile);
+        res.end(fs.readFileSync('main.mini.html'));
     }
 });
 
 server.listen(port, () => {
     console.log(`Server running at http://127.0.0.1:${port}/`);
-});
-
-minify.then(async res => {
-    miniFile = await res.minify('main.html', {
-        js: {
-            mangleClassNames: true,
-            removeUnusedVariables: true,
-            removeConsole: false,
-            removeUselessSpread: true
-        },
-        html: {
-            removeComments: true,
-            removeCommentsFromCDATA: true,
-            removeCDATASectionsFromCDATA: true,
-            collapseWhitespace: true,
-            collapseBooleanAttributes: true,
-            removeAttributeQuotes: true,
-            removeRedundantAttributes: true,
-            useShortDoctype: true,
-            removeEmptyAttributes: true,
-            removeEmptyElements: false,
-            removeOptionalTags: true,
-            removeScriptTypeAttributes: true,
-            removeStyleLinkTypeAttributes: true,
-            minifyJS: true,
-            minifyCSS: true
-        },
-        css: {
-            compatibility: '*'
-        }
-    });
 });
