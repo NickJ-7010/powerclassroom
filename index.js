@@ -1,3 +1,4 @@
+const minify = import('minify');
 const http = require('http');
 const fs = require('fs');
 
@@ -17,11 +18,13 @@ const server = http.createServer((req, res) => {
     if (req.url == '/favicon.ico') {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'image/x-icon');
+        res.setHeader('Cache-Control', 'max-age=31536000');
         res.end(fs.readFileSync('assets/static/favicon.ico'));
     } else if (req.url == '/manifest.json') {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.end(fs.readFileSync('manifest.json'));
+        res.setHeader('Cache-Control', 'max-age=31536000');
+        res.end(fs.readFileSync('assets/static/manifest.json'));
     } else if (req.url == '/robots.txt') {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/plain');
@@ -38,10 +41,42 @@ const server = http.createServer((req, res) => {
     } else {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
-        res.end(fs.readFileSync('main.html'));
+        res.end(fs.readFileSync(`main.mini.html`));
     }
 });
 
 server.listen(port, () => {
     console.log(`Server running at http://127.0.0.1:${port}/`);
+});
+
+minify.then(async res => {
+    const minified = await res.minify('main.html', {
+        js: {
+            mangleClassNames: true,
+            removeUnusedVariables: true,
+            removeConsole: false,
+            removeUselessSpread: true
+        },
+        html: {
+            removeComments: true,
+            removeCommentsFromCDATA: true,
+            removeCDATASectionsFromCDATA: true,
+            collapseWhitespace: true,
+            collapseBooleanAttributes: true,
+            removeAttributeQuotes: true,
+            removeRedundantAttributes: true,
+            useShortDoctype: true,
+            removeEmptyAttributes: true,
+            removeEmptyElements: false,
+            removeOptionalTags: true,
+            removeScriptTypeAttributes: true,
+            removeStyleLinkTypeAttributes: true,
+            minifyJS: true,
+            minifyCSS: true
+        },
+        css: {
+            compatibility: '*'
+        }
+    });
+    fs.writeFileSync(`main.mini.html`, minified);
 });

@@ -1215,12 +1215,12 @@
                 </div>
             </div>
         </div>
-
         <script>
             var darkMode = localStorage.getItem('darkMode');
             var eqURL = 'https://brightspace.aacps.org/d2l/home/7684';
             var classes = parseClasses(localStorage.getItem('classes') ?? '', true);
             var content = parseContent(localStorage.getItem('content') ?? '', true);
+            var assignments = parseAssignments(localStorage.getItem('assignments') ?? '', true);
             var menuOpen = false;
 
             console.log('%cWARNING!\n%cUsing this console may allow attackers to impersonate you and steal your information and accounts using an attack called Self-XSS.\nDo not enter or paste code that you did not write or do not understand.', 'background: yellow; color: red; font-weight: bolder; font-size: 50px', 'font-size: 25px');
@@ -1542,7 +1542,7 @@
                                 </div>
                                 <div style="display: flex; align-items: center; user-select: none;">
                                     <div class="material_checkbox" id="assignments_checkbox"></div>
-                                    Assignments (does nothing)
+                                    Assignments
                                 </div>
                             `;
 
@@ -1551,6 +1551,8 @@
                             
                             document.getElementById('form_submit').onclick = async function () {
                                 showSnackbar({ text: 'Attemping to get class content', duration: 10000 });
+                                const getContent = document.getElementById('content_checkbox').getAttribute('checked') != null;
+                                const getAssignments = document.getElementById('assignments_checkbox').getAttribute('checked') != null;
                                 document.getElementById('form_cancel').onclick();
 
                                 function unpack (arr, parent) {
@@ -1590,30 +1592,44 @@
                                     function evalFinish () {
                                         if (completed == classes.length) {
                                             localStorage.setItem('content', parseContent(content));
+                                            localStorage.setItem('assignments', parseAssignments(assignments));
                                             drawElements();
                                             showSnackbar({ text: 'Successfully got class content!', icon: 'success', duration: 10000 });
                                         }
                                     }
 
                                     for (const course of classes) {
-                                        const res = JSON.parse(await bsApiReq(`/d2l/api/le/unstable/${course.id}/content/toc?loadDescription=true`));
-                                        var items = [];
+                                        if (getContent) {
+                                            const res = JSON.parse(await bsApiReq(`/d2l/api/le/unstable/${course.id}/content/toc?loadDescription=true`));
+                                            var items = [];
 
-                                        unpack(res.Modules, null);
-                                        content[course.id] = items;
-
+                                            unpack(res.Modules, null);
+                                            content[course.id] = items;
+                                        }
+                                        if (getAssignments) {
+                                            const html = await bsApiReq(`/d2l/lms/dropbox/user/folders_list.d2l?ou=${course.id}&isprv=0&d2l_stateScopes=%7B%221%22%3A%5B%22gridpagenum%22,%22search%22,%22pagenum%22%5D,%222%22%3A%5B%22lcs%22%5D,%223%22%3A%5B%22grid%22,%22pagesize%22,%22htmleditor%22,%22hpg%22%5D%7D&d2l_stateGroups=%5B%22grid%22,%22gridpagenum%22%5D&d2l_statePageId=356&d2l_state_grid=%7B%22Name%22%3A%22grid%22,%22Controls%22%3A%5B%7B%22ControlId%22%3A%7B%22ID%22%3A%22grid_main%22%7D,%22StateType%22%3A%22%22,%22Key%22%3A%22%22,%22Name%22%3A%22gridFolders%22,%22State%22%3A%7B%22PageSize%22%3A%22200%22,%22SortField%22%3A%22DropboxId%22,%22SortDir%22%3A0%7D%7D%5D%7D&d2l_state_gridpagenum=%7B%22Name%22%3A%22gridpagenum%22,%22Controls%22%3A%5B%7B%22ControlId%22%3A%7B%22ID%22%3A%22grid_main%22%7D,%22StateType%22%3A%22pagenum%22,%22Key%22%3A%22%22,%22Name%22%3A%22gridFolders%22,%22State%22%3A%7B%22PageNum%22%3A1%7D%7D%5D%7D&d2l_change=0`);
+                                            assignments[course.id] = [...html.matchAll(/<a class="d2l-link d2l-link-inline" href="\/d2l\/lms\/dropbox\/user\/folder_submit_files\.d2l\?db=(?<id>[0-9]*)&amp;grpid=0&amp;isprv=0&amp;bp=0&amp;ou=686786" title=".*?"><strong>(?<title>.*?)<\/strong><\/a>.*?<label><strong>Due on (?<due_date>.*?)<\/strong><\/label>.*?<li>Available on (?<start_date>.*?)<ul class="dl dl_no">.*?<\/li>.*?<a class="d2l-link d2l-link-inline" href=".*?" title=".*?">(?<status>.*?)<\/a>/g)].map(match => match.groups).map(group => ({ id: parseInt(group.id), title: group.title, due_date: new Date(group.due_date).valueOf(), start_date: new Date(group.due_date).valueOf(), status: group.status }));
+                                        }
+                                        
                                         completed++;
                                         evalFinish();
                                     }
                                 } else {
                                     const classId = document.getElementById('class_selector').value;
-                                    const res = JSON.parse(await bsApiReq(`/d2l/api/le/unstable/${classId}/content/toc?loadDescription=true`));
-                                    var items = [];
+                                    if (getContent) {
+                                        const res = JSON.parse(await bsApiReq(`/d2l/api/le/unstable/${classId}/content/toc?loadDescription=true`));
+                                        var items = [];
 
-                                    unpack(res.Modules, null);
-                                    content[classId] = items;
+                                        unpack(res.Modules, null);
+                                        content[classId] = items;
+                                    }
+                                    if (getAssignments) {
+                                        const html = await bsApiReq(`/d2l/lms/dropbox/user/folders_list.d2l?ou=${classId}&isprv=0&d2l_stateScopes=%7B%221%22%3A%5B%22gridpagenum%22,%22search%22,%22pagenum%22%5D,%222%22%3A%5B%22lcs%22%5D,%223%22%3A%5B%22grid%22,%22pagesize%22,%22htmleditor%22,%22hpg%22%5D%7D&d2l_stateGroups=%5B%22grid%22,%22gridpagenum%22%5D&d2l_statePageId=356&d2l_state_grid=%7B%22Name%22%3A%22grid%22,%22Controls%22%3A%5B%7B%22ControlId%22%3A%7B%22ID%22%3A%22grid_main%22%7D,%22StateType%22%3A%22%22,%22Key%22%3A%22%22,%22Name%22%3A%22gridFolders%22,%22State%22%3A%7B%22PageSize%22%3A%22200%22,%22SortField%22%3A%22DropboxId%22,%22SortDir%22%3A0%7D%7D%5D%7D&d2l_state_gridpagenum=%7B%22Name%22%3A%22gridpagenum%22,%22Controls%22%3A%5B%7B%22ControlId%22%3A%7B%22ID%22%3A%22grid_main%22%7D,%22StateType%22%3A%22pagenum%22,%22Key%22%3A%22%22,%22Name%22%3A%22gridFolders%22,%22State%22%3A%7B%22PageNum%22%3A1%7D%7D%5D%7D&d2l_change=0`);
+                                        assignments[classId] = [...html.matchAll(/<a class="d2l-link d2l-link-inline" href="\/d2l\/lms\/dropbox\/user\/folder_submit_files\.d2l\?db=(?<id>[0-9]*)&amp;grpid=0&amp;isprv=0&amp;bp=0&amp;ou=686786" title=".*?"><strong>(?<title>.*?)<\/strong><\/a>.*?<label><strong>Due on (?<due_date>.*?)<\/strong><\/label>.*?<li>Available on (?<start_date>.*?)<ul class="dl dl_no">.*?<\/li>.*?<a class="d2l-link d2l-link-inline" href=".*?" title=".*?">(?<status>.*?)<\/a>/g)].map(match => match.groups).map(group => ({ id: parseInt(group.id), title: group.title, due_date: new Date(group.due_date).valueOf(), start_date: new Date(group.due_date).valueOf(), status: group.status }));
+                                    }
 
                                     localStorage.setItem('content', parseContent(content));
+                                    localStorage.setItem('assignments', parseAssignments(assignments));
                                     drawElements();
                                     showSnackbar({ text: 'Successfully got class content!', icon: 'success', duration: 10000 });
                                 }
@@ -2025,7 +2041,7 @@
                 } else {
                     var prefix = [];
                     for (const [id, arr] of Object.entries(data)) {
-                        if (id) prefix.push(`${id}:${arr.length}`);
+                        if (id && arr.length) prefix.push(`${id}:${arr.length}`);
                     }
                     prefix = prefix.join(',');
 
@@ -2042,6 +2058,74 @@
                                 else if (key == 'children') short = 'C';
                                 else if (key == 'url') short = 'U';
                                 values.push(short + value);
+                            }
+                            arr.push(values.join(CHAR2));
+                        }
+                    }
+                    arr = arr.join(CHAR);
+
+                    return prefix + CHAR + arr;
+                }
+            }
+
+            function parseAssignments (data, toJSON) {
+                const CHAR = String.fromCharCode(0xf000);
+                const CHAR2 = String.fromCharCode(0xf001);
+                if (toJSON) {
+                    const obj = { };
+                    const classAmounts = { };
+                    const arr = data.split(CHAR);
+                    var i = 0;
+                    for (const str of arr.shift().split(',')) {
+                        const values = str.split(':');
+                        obj[values[0]] = [];
+                        classAmounts[values[0]] = parseInt(values[1]);
+                    }
+
+                    for (const [id, amount] of Object.entries(classAmounts)) {
+                        for (const str of arr.slice(i, i + amount)) {
+                            const construct = { };
+                            var o = 0;
+                            for (const entry of str.split(CHAR2)) {
+                                var key = '';
+                                switch (o) {
+                                    case 0:
+                                        key = 'id';
+                                        break;
+                                    case 1:
+                                        key = 'title';
+                                        break;
+                                    case 2:
+                                        key = 'due_date';
+                                        break;
+                                    case 3:
+                                        key = 'start_date';
+                                        break;
+                                    case 4:
+                                        key = 'status'
+                                        break;
+                                }
+                                construct[key] = o == 1 || o == 4 ? entry : parseInt(entry);
+                                o++;
+                            }
+                            obj[id].push(construct);
+                        }
+                        i += amount;
+                    }
+                    return obj;
+                } else {
+                    var prefix = [];
+                    for (const [id, arr] of Object.entries(data)) {
+                        if (id && arr.length) prefix.push(`${id}:${arr.length}`);
+                    }
+                    prefix = prefix.join(',');
+
+                    var arr = [];
+                    for (const a of Object.values(data)) {
+                        for (const obj of a) {
+                            var values = [];
+                            for (const [key, value] of Object.entries(obj)) {
+                                values.push(value);
                             }
                             arr.push(values.join(CHAR2));
                         }

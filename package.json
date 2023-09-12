@@ -1,5 +1,8 @@
 {
     "scripts": {
         "start": "node index.js"
+    },
+    "dependencies": {
+        "minify": "^10.5.2"
     }
 }
