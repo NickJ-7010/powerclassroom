@@ -14,6 +14,8 @@ const mimeTypes = {
     "css": "text/css"
 }
 
+let miniFile;
+
 const server = http.createServer((req, res) => {
     if (req.url == '/favicon.ico') {
         res.statusCode = 200;
@@ -41,7 +43,7 @@ const server = http.createServer((req, res) => {
     } else {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
-        res.end(fs.readFileSync(`main.mini.html`));
+        res.end(miniFile);
     }
 });
 
@@ -50,7 +52,7 @@ server.listen(port, () => {
 });
 
 minify.then(async res => {
-    const minified = await res.minify('main.html', {
+    miniFile = await res.minify('main.html', {
         js: {
             mangleClassNames: true,
             removeUnusedVariables: true,
@@ -78,5 +80,4 @@ minify.then(async res => {
             compatibility: '*'
         }
     });
-    fs.writeFileSync(`main.mini.html`, minified);
 });
