@@ -1606,7 +1606,7 @@
                                         parent.appendChild(child);
                                     }
                                 } else {
-                                    parent.innerHTML = '<div class="empty">Nothing To-Do</div>';
+                                    parent.innerHTML = '<div class="empty"></div>';
                                 }
                             }
 
@@ -1956,6 +1956,7 @@
 
                     if (!menuOnly) {
                         document.getElementById('classes_container').innerHTML = '';
+                        document.getElementById('classes_container').classList.remove('empty');
 
                         for (const course of classes) {
                             const classElement = document.createElement('div');
