@@ -1278,9 +1278,9 @@
 
             if (!history.state) history.replaceState({ altURL: false }, '', window.location.origin == 'file://' ? '?path=' + new URLSearchParams(window.location.search).get('path') ?? '/' : window.location.pathname + window.location.search);
 
-            if (decodeURIComponent(window.location.search).includes('http://127.0.0.1:2060')) {
+            if (decodeURIComponent(window.location.search).includes('https://powerclassroom.onrender.com')) {
                 for (const [key, value] of new URLSearchParams(window.location.search).entries()) {
-                        if (value.includes('http://127.0.0.1:2060')) {
+                        if (value.includes('https://powerclassroom.onrender.com')) {
                             const search = new URLSearchParams(window.location.search);
                             urlKey = key;
                             search.set(key, '{(URL_TO_BE_REPLACED)}');
@@ -1307,21 +1307,21 @@
                 const fonts = document.createElement('style');
 
                 manifest.rel = 'manifest';
-                manifest.href = altUrl.replace('{(URL_TO_BE_REPLACED)}', 'http://127.0.0.1:2060/manifest.json');
+                manifest.href = altUrl.replace('{(URL_TO_BE_REPLACED)}', 'https://powerclassroom.onrender.com/manifest.json');
                 
                 icon.rel = 'shortcut icon';
-                icon.href = altUrl.replace('{(URL_TO_BE_REPLACED)}', 'http://127.0.0.1:2060/assets/static/favicon.ico');
+                icon.href = altUrl.replace('{(URL_TO_BE_REPLACED)}', 'https://powerclassroom.onrender.com/assets/static/favicon.ico');
 
                 fonts.innerHTML = `
                     @font-face {
                         font-family: 'Google';
-                        src: url('${altUrl.replace('{(URL_TO_BE_REPLACED)}', 'http://127.0.0.1:2060/assets/static/Google Sans.woff2')}');
+                        src: url('${altUrl.replace('{(URL_TO_BE_REPLACED)}', 'https://powerclassroom.onrender.com/assets/static/Google Sans.woff2')}');
                         font-display: swap;
                     }
 
                     @font-face {
                         font-family: 'Google Medium';
-                        src: url('${altUrl.replace('{(URL_TO_BE_REPLACED)}', 'http://127.0.0.1:2060/assets/static/Google Sans Medium.woff2')}');
+                        src: url('${altUrl.replace('{(URL_TO_BE_REPLACED)}', 'https://powerclassroom.onrender.com/assets/static/Google Sans Medium.woff2')}');
                         font-display: swap;
                     }
                 `;
