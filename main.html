@@ -1306,8 +1306,10 @@
                 const icon = document.createElement('link');
                 const fonts = document.createElement('style');
 
+                const search = new URLSearchParams(window.location.search)
+                search.set(urlKey, 'https://powerclassroom.onrender.com/{(URL_TO_BE_REPLACED)}');
                 manifest.rel = 'manifest';
-                manifest.href = altUrl.replace('{(URL_TO_BE_REPLACED)}', 'https://powerclassroom.onrender.com/manifest.json');
+                manifest.href = altUrl.replace('{(URL_TO_BE_REPLACED)}', 'https://powerclassroom.onrender.com/manifest.json?url=' + encodeURIComponent(window.location.pathname + '?' + search.toString()));
                 
                 icon.rel = 'shortcut icon';
                 icon.href = altUrl.replace('{(URL_TO_BE_REPLACED)}', 'https://powerclassroom.onrender.com/assets/static/favicon.ico');

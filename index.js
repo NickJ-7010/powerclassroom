@@ -19,11 +19,18 @@ const server = http.createServer((req, res) => {
         res.setHeader('Content-Type', 'image/x-icon');
         res.setHeader('Cache-Control', 'max-age=31536000');
         res.end(fs.readFileSync('assets/static/favicon.ico'));
-    } else if (req.url == '/manifest.json') {
+    } else if (req.url.startsWith('/manifest.json')) {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Cache-Control', 'max-age=31536000');
-        res.end(fs.readFileSync('assets/static/manifest.json'));
+        if (req.url == '/manifest.json') {
+            res.end(fs.readFileSync('assets/static/manifest.json'));
+        } else {
+            const manifest = JSON.parse(fs.readFileSync('assets/static/manifest.json'));
+            const proxyUrl = decodeURIComponent(req.url.split('?url=')[1]);
+            manifest.icons = manifest.icons.map(icon => ({ src: proxyUrl.replace('{(URL_TO_BE_REPLACED)}', icon.src), sizes: icon.sizes, type: icon.type }));
+            res.end(JSON.stringify(manifest));
+        }
     } else if (req.url == '/robots.txt') {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/plain');
