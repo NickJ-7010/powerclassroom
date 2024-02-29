@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
 
@@ -26,6 +26,8 @@ http.createServer((req, res) => {
         req.on('end', async () => {
             try {
                 const request = JSON.parse(data);
+                const username = request.id;
+                const password = request.password;
 
                 const completed = {
                     powerschool: undefined,
@@ -35,6 +37,8 @@ http.createServer((req, res) => {
                 var error = 0;
 
                 function validateFinish () {
+                    console.log(completed);
+                    console.log(error);
                     if (typeof completed.brightspace == 'string' == request.brightspace && typeof completed.powerschool == 'string' == request.powerschool) {
                         res.statusCode = '200';
                         res.setHeader('Content-Type', 'text/plain');
@@ -47,67 +51,53 @@ http.createServer((req, res) => {
                 }
 
                 if (request.powerschool) {
-                    const pReq = https.request({
-                        hostname: 'powerschool.aacps.org',
-                        path: '/guardian/home.html',
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        }
-                    }, response => {
-                        try {
-                            completed.powerschool = [response.rawHeaders.find(header => header.startsWith('JSESSIONID=')).split(';')[0], response.rawHeaders.find(header => header.startsWith('psaid=')).split(';')[0], response.rawHeaders.find(header => header.startsWith('B100Serverpoolcookie=')).split(';')[0]].join(';');
-                        } catch (e) {
-                            request.powerschool = false;
-                            error += 1;
-                        }
-                        validateFinish();
+                    const template = '<?xml version="1.0" encoding="UTF-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns="http://publicportal.rest.powerschool.pearson.com/xsd"><soap:Header><wsse:Security soap:mustUnderstand="0" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><wsse:UsernameToken><wsse:Username>pearson</wsse:Username><wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">{{PASSWORD_DIGEST}}</wsse:Password><wsse:Nonce>{{NONCE}}</wsse:Nonce><wsu:Created>{{CREATED}}</wsu:Created></wsse:UsernameToken></wsse:Security></soap:Header><soap:Body><loginToPublicPortal xmlns="http://publicportal.rest.powerschool.pearson.com/xsd"><username><![CDATA[{{USERNAME}}]]></username><password><![CDATA[{{PASSWORD}}]]></password></loginToPublicPortal></soap:Body></soap:Envelope>';
+
+                    const nonce = btoa(crypto.randomBytes(8).toString('hex'));
+                    const created = new Date().toISOString();
+                    const digest = generateDigest(nonce, created);
+
+                    const payload = template.replace("{{USERNAME}}", username).replace("{{PASSWORD}}", password).replace("{{NONCE}}", nonce).replace("{{CREATED}}", created).replace("{{PASSWORD_DIGEST}}", digest);
+
+                    const request = https.request({
+                        hostname: "powerschool.aacps.org",
+                        method: "POST",
+                        path: "/pearson-rest/services/PublicPortalService"
+                    }, (response) => {
+                        var data = "";
+
+                        response.on('data', d => {
+                            data += d.toString();
+                        });
+
+                        response.on('end', () => {
+                            try {
+                                completed.powerschool = JSON.stringify(/<serviceTicket>(?<token>.*?)<\/serviceTicket><studentIDs>(?<id>[0-9]*)<\/studentIDs>.*?<userType>(?<type>.*?)<\/userType>/.exec(data).groups);
+                            } catch (e) {
+                                request.powerschool = false;
+                                error += 1;
+                            }
+                            validateFinish();
+                        });
                     });
 
-                    pReq.on('error', (error) => {
-                        console.error(error);
-                    });
-                    
-                    pReq.write(`dbpw=${request.password}&translator_username=&translator_password=&translator_ldappassword=&returnUrl=&serviceName=PS+Parent+Portal&serviceTicket=&pcasServerUrl=%2F&credentialType=User+Id+and+Password+Credential&ldappassword=${request.password}&account=${request.id}&pw=${request.password}&translatorpw=`);
-                    pReq.end();
+                    request.write(payload);
+                    request.end();
                 }
 
                 if (request.brightspace) {
-                    const browser = await puppeteer.launch({ args: ['--disable-setuid-sandbox', '--no-sandbox', '--single-process', '--no-zygote'], executablePath: '/usr/bin/google-chrome-stable' });
-                    const page = await browser.newPage();
+                    try {
+                        const initReq = await getHtml();
+                        const initData = JSON.parse(/\$Config=({.*?});/s.exec(initReq.HTML)[1]);
 
-                    await page.setViewport({ width: 1280, height: 800 });
-                    await page.goto('https://brightspace.aacps.org/d2l/lp/auth/saml/initiate-login?entityId=https://sts.windows.net/b7d27e93-356b-4ad8-8a70-89c35df207c0/', { waitUntil: ['networkidle2'] });
+                        const credentials = JSON.parse(await getCredentials(username + "@aacps.org", initData));
+                        const saml = await getSaml(username + "@aacps.org", password, initData, credentials, initReq.cookies);
 
-                    setTimeout(async () => {
-                        try {
-                            const navigationPromise = page.waitForNavigation({ waitUntil: ['networkidle2'] });
-                            
-                            await page.waitForSelector('[name="loginfmt"]');
-                            await page.type('[name="loginfmt"]', request.id + '@aacps.org');
-                            await page.click('[type="submit"]');
-                            
-                            await navigationPromise;
-                            await page.waitForResponse(response => response.status() === 200);
-                            
-                            await page.waitForSelector('input[type="password"]', { visible: true });
-                            await page.type('input[type="password"]', request.password);
-                            await page.click('[type="submit"]');
-                            
-                            await navigationPromise;
-                            await page.waitForResponse(response => response.headers()['set-cookie']?.includes('d2lSessionVal='));
-                            
-                            completed.brightspace = (await page.cookies('https://brightspace.aacps.org')).map(cookie => `${cookie.name}=${cookie.value}`).join(';');
-                            
-                            validateFinish();
-
-                            await browser.close();
-                        } catch (e) {
-                            request.brightspace = false;
-                            error += 2;
-                            validateFinish();
-                        }
-                    }, 1000);
+                        completed.brightspace = await getTokens(saml);
+                    } catch (e) {
+                        request.brightspace = false;
+                        error += 2;
+                    }
                 }
 
                 validateFinish();
@@ -125,3 +115,157 @@ http.createServer((req, res) => {
         res.end('The server is running just fine!');
     }
 }).listen(3000);
+
+function getHtml() {
+    return new Promise((ret, rej) => {
+        https.request({
+            hostname: 'brightspace.aacps.org',
+            path: '/d2l/lp/auth/saml/initiate-login?entityId=https://sts.windows.net/b7d27e93-356b-4ad8-8a70-89c35df207c0/'
+        }, response => {
+            const url = new URL(response.headers.location);
+            https.request({
+                hostname: url.host,
+                path: url.pathname + url.search + "&sso_reload=true"
+            }, res => {
+                var data = "";
+                
+                res.on('data', d => {
+                    data += d.toString();
+                });
+
+                res.on('end', () => {
+                    ret({ HTML: data, cookies: res.headers['set-cookie'].map(cookie => cookie.split(';')[0]) });
+                });
+            }).end();
+        }).end();
+    });
+}
+
+function getCredentials(username, initData) {
+    return new Promise((ret, rej) => {
+        const payload = {
+            "username": username,
+            "isOtherIdpSupported": true,
+            "checkPhones": true,
+            "isRemoteNGCSupported": true,
+            "isCookieBannerShown": false,
+            "isFidoSupported": true,
+            "originalRequest": initData.sCtx,
+            "country": "US",
+            "forceotclogin": false,
+            "isExternalFederationDisallowed": false,
+            "isRemoteConnectSupported": false,
+            "federationFlags": 0,
+            "isSignup": false,
+            "flowToken": initData.sFT,
+            "isAccessPassSupported": true
+        }
+
+        const req = https.request({
+            hostname: 'login.microsoftonline.com',
+            path: '/common/GetCredentialType?mkt=en-US',
+            method: 'POST'
+        }, res => {
+            var data = "";
+
+            res.on('data', d => {
+                data += d.toString();
+            });
+
+            res.on('end', () => {
+                ret(data);
+            });
+        });
+        
+        req.write(JSON.stringify(payload));
+        req.end();
+    });
+}
+
+function getSaml(username, password, initData, credentials, cookies) {
+    return new Promise((ret, rej) => {
+        const payload = `
+            i13=0
+            &login=${encodeURIComponent(username)}
+            &loginfmt=${encodeURIComponent(username)}
+            &type=11
+            &LoginOptions=3
+            &lrt=
+            &lrtPartition=
+            &hisRegion=
+            &hisScaleUnit=
+            &passwd=${encodeURIComponent(password)}
+            &ps=2
+            &psRNGCDefaultType=
+            &psRNGCEntropy=
+            &psRNGCSLK=
+            &canary=${encodeURIComponent(initData.canary)}
+            &ctx=${encodeURIComponent(initData.sCtx)}
+            &hpgrequestid=${encodeURIComponent(initData.sessionId)}
+            &flowToken=${encodeURIComponent(credentials.FlowToken)}
+            &PPSX=
+            &NewUser=1
+            &FoundMSAs=
+            &fspost=0
+            &i21=0
+            &CookieDisclosure=0
+            &IsFidoSupported=1
+            &isSignupPost=0
+            &i19=126777
+        `.replace(/\n/g, '').replace(/\s/g, '');
+
+        const req = https.request({
+            hostname: 'login.microsoftonline.com',
+            path: '/b7d27e93-356b-4ad8-8a70-89c35df207c0/login',
+            method: 'POST',
+            headers: {
+                'Host': 'login.microsoftonline.com',
+                'Origin': 'https://login.microsoftonline.com',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'Referer': 'https://login.microsoftonline.com/b7d27e93-356b-4ad8-8a70-89c35df207c0/saml2?SAMLRequest=jdHNasMwDADg%2b2DvEHxPnKhOmpqkULZLobu02w67DMVR20BiZ5Yz9vhLV8p23E0%2fCD5J1WYKZ7unj4k4RNvHWjAOvb%2fm74DFKoVlTosVKTguGzBZphCyAhpVLEhEr%2bS5c7YWkKQi2jJPtLUc0Ia5lIKKU4ihfIZMq1xDnpRZWpbl8k1EG2byYZ59cJangfyB%2fGdn6GW%2fq8U5hJG1lI3vTufAIxpKEM3IifMn2UIv%2b1HiTJe9O3VWXtC7S5TMPRF9Db3lWkzeaofcsbY4EOtg9GHztNOzVY%2feBWdcL9b3d1FU%2fcj9fwbx5hbrm7LFtKVmdYyzZQ6xguIYlw22sUKzgNy0qLIyCWTnq3DydyXjhl96Ja%2bIGVTJv29ZfwM%3d&sso_reload=true',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Cookie': [...cookies, 'x-ms-gateway-slice=estsfd; stsservicecookie=estsfd; AADSSO=NA|NoExtension; SSOCOOKIEPULLED=1; brcap=0; wlidperf=FR=L&ST=' + Date.now()].join('; ')
+            }
+        }, response => {
+            var data = "";
+            
+            response.on('data', d => {
+                data = d.toString();
+            });
+
+            response.on('end', () => {
+                ret(/action="(?<url>.*?)".*?name="(?<key>[A-z]*)" value="(?<value>.*?)"/.exec(data).groups);
+            });
+        });
+
+        req.write(payload);
+        req.end();
+    });
+}
+
+function getTokens(saml) {
+    return new Promise((ret, rej) => {
+        const url = new URL(saml.url);
+
+        const req = https.request({
+            hostname: url.host,
+            path: url.pathname,
+            method: 'POST'
+        }, res => {
+            ret(res.headers['set-cookie'].map(cookie => cookie.split(';')[0]).join(';'));
+        });
+
+        req.write(`${saml.key}=${saml.value}`);
+        req.end();
+    });
+}
+
+function generateDigest(nonce, createdString) { // base64(sha-1(nonce + created + password))
+    const nonceBytes = Buffer.from(nonce, 'base64');
+    const time = Buffer.from(createdString);
+    const pwd = Buffer.from("m0bApP5");
+
+    return crypto.createHash('sha1').update(Buffer.concat([nonceBytes, time, pwd])).digest('base64');
+}
