@@ -2075,10 +2075,10 @@
                 document.getElementById('form_content').innerHTML = `
                     <div style="display: flex; flex-direction: column; user-select: none;">
                         <div style="display: flex; padding: 4px">
-                            Brightspace: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.brightspace ?? 0) - Date.now() < -10800000 ? 'Expired!' : 'Expires in ' + calcTimeDiff(Math.floor(Date.now() / 1000) - (10800 - Math.floor((Date.now() - tokens.brightspace) / 1000)))}</div>
+                            Brightspace: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.brightspace ?? 0) - Date.now() < -10800000 ? 'Expired!' : 'Expires in ' + Math.floor((10800 - Math.floor((Date.now() - tokens.brightspace) / 1000)) / 60) + ' minutes'}</div>
                         </div>
                         <div style="display: flex; padding: 4px">
-                            Powerschool: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.powerschool ?? 0) - Date.now() < -1800000 ? 'Expired!' : 'Expires in ' + calcTimeDiff(Math.floor(Date.now() / 1000) - (1800 - Math.floor((Date.now() - tokens.powerschool) / 1000)))}</div>
+                            Powerschool: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.powerschool ?? 0) - Date.now() < -3600000 ? 'Expired!' : 'Expires in ' + Math.floor((3600 - Math.floor((Date.now() - tokens.brightspace) / 1000)) / 60) + ' minutes'}</div>
                         </div>
                     </div>
                 `;
@@ -2097,7 +2097,7 @@
                         </div>
                         <div style="display: flex; align-items: center; user-select: none;">
                             <div class="material_checkbox" id="powerschool_signin_checkbox"></div>
-                            Sign into Powerschool (does nothing)
+                            Sign into Powerschool
                         </div>
                         <form autocomplete="on" id="auth_form" style="display: flex; flex-direction: column;" target="form_target">
                             <div class="material_outlined_textbox" id="student_id_textbox" autocomplete="username">Student ID</div>
@@ -2355,27 +2355,6 @@
                 });
             }
 
-            function calcTimeDiff (date) {
-                var seconds = Math.floor((new Date().getTime() / 1000) - date),
-                interval = Math.floor(seconds / 31536000);
-
-                if (interval > 1) return interval + " years";
-
-                interval = Math.floor(seconds / 2592000);
-                if (interval > 1) return interval + " months";
-
-                interval = Math.floor(seconds / 86400);
-                if (interval >= 1) return interval + " days";
-
-                interval = Math.floor(seconds / 3600);
-                if (interval >= 1) return interval + " hours";
-
-                interval = Math.floor(seconds / 60);
-                if (interval > 1) return interval + " minutes";
-
-                return Math.floor(seconds) + " seconds";
-            }
-
             function showSnackbar ({ text: label, icon: iconType = 'info', button: { text: btnLabel, color: color, callback: callback } = { text: undefined, color: 'rgb(26, 115, 232)', callback: () => {} }, duration: duration }) {
                 const element = document.createElement('div');
                 const container = document.createElement('div');
@@ -2425,7 +2404,6 @@
                 }, duration);
             }
 
-            convertToMaterialButton(document.getElementById('theme_button'));
             convertToMaterialButton(document.getElementById('brightspace_sign_in_button'));
             convertToMaterialButton(document.getElementById('equivalent_page_button'));
             convertToMaterialButton(document.getElementById('sign_in_button'));
