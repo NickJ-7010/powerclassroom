@@ -37,8 +37,6 @@ http.createServer((req, res) => {
                 var error = 0;
 
                 function validateFinish () {
-                    console.log(completed);
-                    console.log(error);
                     if (typeof completed.brightspace == 'string' == request.brightspace && typeof completed.powerschool == 'string' == request.powerschool) {
                         res.statusCode = '200';
                         res.setHeader('Content-Type', 'text/plain');
