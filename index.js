@@ -253,7 +253,7 @@ function getTokens(saml) {
             path: url.pathname,
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded
+                'Content-Type': 'application/x-www-form-urlencoded'
             }
         }, res => {
             ret(res.headers['set-cookie'].map(cookie => cookie.split(';')[0]).join(';'));
