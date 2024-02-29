@@ -224,7 +224,6 @@ function getSaml(username, password, initData, credentials, cookies) {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Referer': 'https://login.microsoftonline.com/b7d27e93-356b-4ad8-8a70-89c35df207c0/saml2?SAMLRequest=jdHNasMwDADg%2b2DvEHxPnKhOmpqkULZLobu02w67DMVR20BiZ5Yz9vhLV8p23E0%2fCD5J1WYKZ7unj4k4RNvHWjAOvb%2fm74DFKoVlTosVKTguGzBZphCyAhpVLEhEr%2bS5c7YWkKQi2jJPtLUc0Ia5lIKKU4ihfIZMq1xDnpRZWpbl8k1EG2byYZ59cJangfyB%2fGdn6GW%2fq8U5hJG1lI3vTufAIxpKEM3IifMn2UIv%2b1HiTJe9O3VWXtC7S5TMPRF9Db3lWkzeaofcsbY4EOtg9GHztNOzVY%2feBWdcL9b3d1FU%2fcj9fwbx5hbrm7LFtKVmdYyzZQ6xguIYlw22sUKzgNy0qLIyCWTnq3DydyXjhl96Ja%2bIGVTJv29ZfwM%3d&sso_reload=true',
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Cookie': [...cookies, 'x-ms-gateway-slice=estsfd; stsservicecookie=estsfd; AADSSO=NA|NoExtension; SSOCOOKIEPULLED=1; brcap=0; wlidperf=FR=L&ST=' + Date.now()].join('; ')
             }
@@ -252,12 +251,15 @@ function getTokens(saml) {
         const req = https.request({
             hostname: url.host,
             path: url.pathname,
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded
+            }
         }, res => {
             ret(res.headers['set-cookie'].map(cookie => cookie.split(';')[0]).join(';'));
         });
 
-        req.write(`${saml.key}=${saml.value}`);
+        req.write(`${saml.key}=${encodeURIComponent(saml.value)}`);
         req.end();
     });
 }
