@@ -57,7 +57,7 @@ http.createServer((req, res) => {
 
                     const payload = template.replace("{{USERNAME}}", username).replace("{{PASSWORD}}", password).replace("{{NONCE}}", nonce).replace("{{CREATED}}", created).replace("{{PASSWORD_DIGEST}}", digest);
 
-                    const request = https.request({
+                    const authReq = https.request({
                         hostname: "powerschool.aacps.org",
                         method: "POST",
                         path: "/pearson-rest/services/PublicPortalService"
@@ -79,8 +79,8 @@ http.createServer((req, res) => {
                         });
                     });
 
-                    request.write(payload);
-                    request.end();
+                    authReq.write(payload);
+                    authReq.end();
                 }
 
                 if (request.brightspace) {
@@ -233,7 +233,11 @@ function getSaml(username, password, initData, credentials, cookies) {
             });
 
             response.on('end', () => {
-                ret(/action="(?<url>.*?)".*?name="(?<key>[A-z]*)" value="(?<value>.*?)"/.exec(data).groups);
+                try {
+                    ret(/action="(?<url>.*?)".*?name="(?<key>[A-z]*)" value="(?<value>.*?)"/.exec(data).groups);
+                } catch (e) {
+                    rej();
+                }
             });
         });
 
