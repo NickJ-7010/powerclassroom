@@ -234,7 +234,7 @@ function getSaml(username, password, initData, credentials, cookies) {
 
             response.on('end', () => {
                 try {
-                    ret(/action="(?<url>.*?)".*?name="(?<key>[A-z]*)" value="(?<value>.*?)"/.exec(data).groups);
+                    ret(data);
                 } catch (e) {
                     rej();
                 }
@@ -246,8 +246,9 @@ function getSaml(username, password, initData, credentials, cookies) {
     });
 }
 
-function getTokens(saml) {
+function getTokens(data) {
     return new Promise((ret, rej) => {
+        const saml = /action="(?<url>.*?)".*?name="(?<key>[A-z]*)" value="(?<value>.*?)"/.exec(data).groups;
         const url = new URL(saml.url);
 
         const req = https.request({
