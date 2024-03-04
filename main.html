@@ -2078,7 +2078,7 @@
                             Brightspace: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.brightspace ?? 0) - Date.now() < -10800000 ? 'Expired!' : 'Expires in ' + Math.floor((10800 - Math.floor((Date.now() - tokens.brightspace) / 1000)) / 60) + ' minutes'}</div>
                         </div>
                         <div style="display: flex; padding: 4px">
-                            Powerschool: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.powerschool ?? 0) - Date.now() < -3600000 ? 'Expired!' : 'Expires in ' + Math.floor((3600 - Math.floor((Date.now() - tokens.brightspace) / 1000)) / 60) + ' minutes'}</div>
+                            Powerschool: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.powerschool ?? 0) - Date.now() < -3600000 ? 'Expired!' : 'Expires in ' + Math.floor((3600 - Math.floor((Date.now() - tokens.powerschool) / 1000)) / 60) + ' minutes'}</div>
                         </div>
                     </div>
                 `;
@@ -2086,7 +2086,7 @@
                 document.getElementById('form_submit').innerHTML = 'Continue';
                 convertToMaterialButton(document.getElementById('form_submit'));
 
-                document.getElementById('form_submit').onclick =  function () {
+                document.getElementById('form_submit').onclick = function () {
                     document.getElementById('form_title').innerText = 'Sign into services?';
                     document.getElementById('form_subtitle').innerText = 'Select which services you want to sign in to and enter your credentials.';
                     document.getElementById('form_content').classList.add('border');
@@ -2144,7 +2144,10 @@
                                         }
                                         if (res.brightspace) {
                                             tokens.brightspace = Date.now();
-                                            localStorage.setItem('brightspace', res.brightspace);
+                                            tokens.brightspaceSAML = Date.now();
+                                            const obj = JSON.parse(res.brightspace);
+                                            localStorage.setItem('brightspace', obj.cookies);
+                                            localStorage.setItem('brightspaceSAML', obj.saml);
                                         }
 
                                         localStorage.setItem('tokens', JSON.stringify(tokens));
@@ -2188,7 +2191,48 @@
             }
             
             document.getElementById('brightspace_sign_in_button').onclick = function () {
-                window.open('https://brightspace.aacps.org/d2l/login', '_blank');
+                const tokens = JSON.parse(localStorage.getItem('tokens') ?? '{}');
+
+                document.getElementById('form_title').innerText = 'Sign into brightspace?';
+                document.getElementById('form_subtitle').innerText = 'This will used a cached login request.\nIf the request has expired, you can sign in again to get another one.';
+                document.getElementById('form_content').classList.add('border');
+                document.getElementById('form_content').innerHTML = `
+                    <div style="display: flex; flex-direction: column; user-select: none;">
+                        <div style="display: flex; padding: 4px">
+                            Login request: <div style="margin-left: 10px; padding: 0 4px; border-radius: 4px; background: rgba(128, 128, 128, 0.2)">${(tokens.brightspaceSAML ?? 0) - Date.now() < -3600000 ? 'Expired!' : 'Expires in ' + Math.floor((3600 - Math.floor((Date.now() - tokens.brightspaceSAML) / 1000)) / 60) + ' minutes'}</div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('form_submit').innerHTML = (tokens.brightspaceSAML ?? 0) - Date.now() < -3600000 ? 'Sign in' : 'Continue';
+                convertToMaterialButton(document.getElementById('form_submit'));
+
+                document.getElementById('form_submit').onclick = function () {
+                    if ((tokens.brightspaceSAML ?? 0) - Date.now() < -3600000) {
+                        document.getElementById('sign_in_button').onclick();
+                    } else {
+                        document.getElementById('form_title').innerText = 'Signing in...';
+                        document.getElementById('form_subtitle').innerText = 'Click "Finish" when you can see the brightspace homepage below.';
+                        document.getElementById('form_content').classList.remove('border');
+                        document.getElementById('form_content').innerHTML = `
+                            <iframe id="brightspace_frame"></iframe>
+                        `;
+
+                        var doc = document.getElementById('brightspace_frame').contentWindow.document;
+                        doc.open();
+                        doc.write(localStorage.getItem('brightspaceSAML'));
+                        doc.close();
+
+                        document.getElementById('form_submit').innerHTML = 'Finish';
+                        convertToMaterialButton(document.getElementById('form_submit'));
+
+                        document.getElementById('form_submit').onclick = function () {
+                            document.getElementById('form_cancel').onclick();
+                        }
+                    }
+                }
+
+                document.getElementById('popup_form').classList.add('active');
             }
 
             document.getElementById('equivalent_page_button').onclick = function () {
