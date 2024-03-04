@@ -91,7 +91,7 @@ http.createServer((req, res) => {
                         const credentials = JSON.parse(await getCredentials(username + "@aacps.org", initData));
                         const saml = await getSaml(username + "@aacps.org", password, initData, credentials, initReq.cookies);
 
-                        completed.brightspace = await getTokens(saml);
+                        completed.brightspace = JSON.stringify({ saml: saml, cookies: await getTokens(saml) });
                     } catch (e) {
                         request.brightspace = false;
                         error += 2;
